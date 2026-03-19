@@ -61,11 +61,9 @@ app = FastAPI(
 
 app.include_router(api_router)
 
-origins = [settings.ORIGINS]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.is_development else origins,
+    allow_origins=["*"] if settings.is_development else settings.ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

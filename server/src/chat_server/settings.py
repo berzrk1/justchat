@@ -12,13 +12,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Server Configuration
-    HOST: str = "0.0.0.0"
-    PORT: int = 8000
     ENVIRONMENT: str
 
     # CORS Origin allowed
-    ORIGINS: str
+    ORIGINS: list[str]
 
     # Security
     SECRET_KEY: str = "your-secret-key-change-this-in-production"
