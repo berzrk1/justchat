@@ -1,7 +1,9 @@
 services:
   backend:
     container_name: chat_backend
-    build: .
+    build:
+      context: .
+      target: prod
     env_file:
       - .env
     ports:

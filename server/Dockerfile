@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS base
 
 RUN groupadd --system --gid 999 nonroot \
   && useradd --system --gid 999 --uid 999 --create-home nonroot
@@ -25,4 +25,8 @@ ENTRYPOINT []
 
 USER nonroot
 
+FROM base AS dev
 CMD ["uv", "run", "fastapi", "dev", "--host", "0.0.0.0", "src/chat_server/main.py"]
+
+FROM base AS prod
+CMD ["uv", "run", "fastapi", "run", "--host", "0.0.0.0", "--workers", "4", "src/chat_server/main.py"]

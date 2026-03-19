@@ -1,5 +1,8 @@
 services:
   backend:
+    build:
+      context: .
+      target: dev
     env_file:
       - .env
     depends_on:
