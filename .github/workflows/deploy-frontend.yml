@@ -1,0 +1,49 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - 'client/**'
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client/web
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@main
+        with:
+          role-to-assume: ${{ secrets.AWS_FRONTEND_ROLE }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+
+      - name: Build Frontend
+        env:
+          VITE_API_URL: ${{ vars.API_URL  }}
+          VITE_WS_URL: ${{ vars.API_WS_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: AWS S3 Sync
+        run: |
+          aws s3 sync dist s3://${{ vars.AWS_S3BUCKET_NAME }}
+
+      - name: Invalidate Cloudfront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_ID }} \
+            --paths "/*"
