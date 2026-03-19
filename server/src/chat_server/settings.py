@@ -1,5 +1,7 @@
 from functools import lru_cache
+from urllib.parse import quote
 
+import boto3
 from pydantic import PostgresDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -24,11 +26,13 @@ class Settings(BaseSettings):
     SUPERUSER_PASSWORD: str = "admin"
 
     # PostgreSQL Configuration
-    POSTGRES_USER: str = "chatuser"
-    POSTGRES_PASSWORD: str = "chatpassword"
-    POSTGRES_HOST: str = "postgres"
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_HOST: str = ""
     POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "chatdb"
+    POSTGRES_DB: str = ""
+
+    AWS_REGION_NAME: str = ""
 
     @computed_field
     @property
@@ -36,14 +40,33 @@ class Settings(BaseSettings):
         """
         Construct PostgreSQL connection URL.
         """
-        return PostgresDsn.build(
-            scheme="postgresql+psycopg",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_HOST,
-            port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
-        )
+        if self.is_development:
+            return PostgresDsn.build(
+                scheme="postgresql+psycopg",
+                username=self.POSTGRES_USER,
+                password=self.POSTGRES_PASSWORD,
+                host=self.POSTGRES_HOST,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DB,
+            )
+
+            auth_token = boto3.client(
+                "rds", region_name=self.AWS_REGION_NAME
+            ).generate_db_auth_token(
+                DBHostname=self.POSTGRES_HOST,
+                Port=self.POSTGRES_PORT,
+                DBUsername=self.POSTGRES_USER,
+                Region=self.AWS_REGION_NAME,
+            )
+
+            return PostgresDsn.build(
+                scheme="postgresql+psycopg",
+                username=self.POSTGRES_USER,
+                password=quote(auth_token, safe=""),
+                host=self.POSTGRES_HOST,
+                port=self.POSTGRES_PORT,
+                path=self.POSTGRES_DB,
+            )
 
     @property
     def is_development(self) -> bool:
