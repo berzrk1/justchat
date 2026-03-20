@@ -50,23 +50,23 @@ class Settings(BaseSettings):
                 path=self.POSTGRES_DB,
             )
 
-            auth_token = boto3.client(
-                "rds", region_name=self.AWS_REGION_NAME
-            ).generate_db_auth_token(
-                DBHostname=self.POSTGRES_HOST,
-                Port=self.POSTGRES_PORT,
-                DBUsername=self.POSTGRES_USER,
-                Region=self.AWS_REGION_NAME,
-            )
+        auth_token = boto3.client(
+            "rds", region_name=self.AWS_REGION_NAME
+        ).generate_db_auth_token(
+            DBHostname=self.POSTGRES_HOST,
+            Port=self.POSTGRES_PORT,
+            DBUsername=self.POSTGRES_USER,
+            Region=self.AWS_REGION_NAME,
+        )
 
-            return PostgresDsn.build(
-                scheme="postgresql+psycopg",
-                username=self.POSTGRES_USER,
-                password=quote(auth_token, safe=""),
-                host=self.POSTGRES_HOST,
-                port=self.POSTGRES_PORT,
-                path=self.POSTGRES_DB,
-            )
+        return PostgresDsn.build(
+            scheme="postgresql+psycopg",
+            username=self.POSTGRES_USER,
+            password=quote(auth_token, safe=""),
+            host=self.POSTGRES_HOST,
+            port=self.POSTGRES_PORT,
+            path=self.POSTGRES_DB,
+        )
 
     @property
     def is_development(self) -> bool:
