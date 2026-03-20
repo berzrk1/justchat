@@ -7,7 +7,12 @@ from chat_server.settings import get_settings
 
 settings = get_settings()
 
-async_engine = create_async_engine(str(settings.DATABASE_URL))
+if settings.is_development:
+    async_engine = create_async_engine(str(settings.DATABASE_URL))
+else:
+    ssl = {"sslmode": "verify-full", "sslrootcert": "/certs/global-bundle.pem"}
+    async_engine = create_async_engine(str(settings.DATABASE_URL), connect_args=ssl)
+
 
 async_session = async_sessionmaker(async_engine, expire_on_commit=False)
 
