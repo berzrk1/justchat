@@ -12,7 +12,7 @@ class Base(DeclarativeBase):
 
 
 class UserTable(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(USERNAME_MAX_LENGTH), unique=True)
@@ -33,7 +33,7 @@ class MessageTable(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     channel_id: Mapped[int] = mapped_column(Integer)
-    sender_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="SET NULL"))
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     sender_username: Mapped[str] = mapped_column(
         String(USERNAME_MAX_LENGTH), nullable=False
     )
@@ -45,8 +45,8 @@ class MuteTable(Base):
     __tablename__ = "mutes"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    target_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    by_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    target_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    by_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     reason: Mapped[str] = mapped_column(String(255), nullable=True)
     # channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
     channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
