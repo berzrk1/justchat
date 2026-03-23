@@ -1,24 +1,46 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # This script resets the chat to an initial state
-
 import logging
 import os
 import sys
 from secrets import choice
 from typing import Any
+from urllib.parse import quote
 
+from dotenv import load_dotenv
+from pydantic import PostgresDsn
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 
-
+load_dotenv()
 # Environment Variables
 POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 POSTGRES_DB = os.getenv("POSTGRES_DB")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
-SUPERUSER_USERNAME = os.getenv("SUPERUSER_USERNAME")
+POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5432))
+
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+if ENVIRONMENT == "production":
+    import boto3
+
+    AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
+    auth_token = boto3.client(
+        "rds", region_name=AWS_REGION_NAME
+    ).generate_db_auth_token(
+        DBHostname=POSTGRES_HOST, DBUsername=POSTGRES_USER, Region=AWS_REGION_NAME
+    )
+    POSTGRES_PASSWORD = quote(auth_token, safe="")
+
+DATABASE_URL = PostgresDsn.build(
+    scheme="postgresql+psycopg",
+    username=POSTGRES_USER,
+    password=POSTGRES_PASSWORD,
+    host=POSTGRES_HOST,
+    port=POSTGRES_PORT,
+    path=POSTGRES_DB,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,9 +51,12 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-engine = create_engine(
-    f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
-)
+
+
+engine = create_engine(str(DATABASE_URL))
+if ENVIRONMENT == "production":
+    ssl = {"sslmode": "verify-full", "sslrootcert": "/certs/global-bundle.pem"}
+    engine = create_engine(str(DATABASE_URL), connect_args=ssl)
 
 
 def checkdb():
