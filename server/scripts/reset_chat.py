@@ -77,7 +77,7 @@ def delete_users():
     try:
         with engine.connect() as conn:
             result = conn.execute(
-                text('DELETE FROM "user" WHERE username != :admin'),
+                text('DELETE FROM "users" WHERE username != :admin'),
                 {"admin": "admin"},
             )
             logging.info(f"Successfully deleted {result.rowcount} users.")
