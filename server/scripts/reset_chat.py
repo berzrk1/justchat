@@ -29,7 +29,10 @@ if ENVIRONMENT == "production":
     auth_token = boto3.client(
         "rds", region_name=AWS_REGION_NAME
     ).generate_db_auth_token(
-        DBHostname=POSTGRES_HOST, DBUsername=POSTGRES_USER, Region=AWS_REGION_NAME
+        DBHostname=POSTGRES_HOST,
+        DBUsername=POSTGRES_USER,
+        Port=POSTGRES_PORT,
+        Region=AWS_REGION_NAME,
     )
     POSTGRES_PASSWORD = quote(auth_token, safe="")
 
