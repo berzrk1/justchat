@@ -113,7 +113,7 @@ def create_users() -> dict[int, str]:
             for user in users:
                 result = conn.execute(
                     text(
-                        'INSERT INTO "user" (username, hashed_password, created_at, is_guest) \
+                        'INSERT INTO "users" (username, hashed_password, created_at, is_guest) \
                         VALUES (:username, :password, NOW(), false) RETURNING id, username'
                     ),
                     user,
