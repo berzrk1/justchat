@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, datetime_CAPI
+from datetime import datetime
 from uuid import uuid4
 
 from chat_server.connection.channel import Channel
@@ -30,8 +30,8 @@ async def handler_kick(
     message: BaseMessage,
     manager: ConnectionManager,
     *,
-    msg_in,  # require_channel
-    channel: Channel,  # @require_membership
+    msg_in,
+    channel: Channel,
 ):
     """
     Handle kick command
@@ -61,8 +61,8 @@ async def handler_mute(
     message: BaseMessage,
     manager: ConnectionManager,
     *,
-    msg_in,  # require_channel
-    channel: Channel,  # @require_membership
+    msg_in,
+    channel: Channel,
 ):
     """
     Handle mute command
@@ -109,8 +109,8 @@ async def handler_unmute(
     message: BaseMessage,
     manager: ConnectionManager,
     *,
-    msg_in,  # require_channel
-    channel: Channel,  # @require_membership
+    msg_in,
+    channel: Channel,
 ):
     """
     Handle unmute command

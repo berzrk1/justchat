@@ -21,18 +21,14 @@ class AuthenticationService:
         Authenticate a User via JWT Token or create a guest user with a random username.
         """
         if token is None:
-            # Guest User
             return await self._create_guest_user()
-        else:
-            # Authenticated
-            return await self._authenticate_token(token)
+        return await self._authenticate_token(token)
 
     async def _authenticate_token(self, token: str) -> User:
         """
         Validate the JWT token and retrieve the user from database.
         """
         try:
-            # Decode JWT
             payload = jwt.decode(
                 token, get_settings().SECRET_KEY, algorithms=[ALGORITHM]
             )
@@ -41,7 +37,6 @@ class AuthenticationService:
             if user_id is None:
                 raise AuthenticationError("Token missing 'sub'")
 
-            # Verify User exists in database
             async with async_session() as session:
                 user_db = await crud.get_user_by_id(session, user_id)
                 if not user_db:

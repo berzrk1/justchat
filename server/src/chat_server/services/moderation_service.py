@@ -1,5 +1,3 @@
-import logging
-
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
 from chat_server.db import crud
@@ -14,7 +12,7 @@ class ModerationService:
     """
 
     def __init__(self) -> None:
-        self._mutes = dict()
+        pass
 
     async def mute_user(
         self,

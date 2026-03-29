@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import logging
 import uuid
@@ -43,34 +44,18 @@ class ChannelService:
         Join a User to a Channel and send an alert to the Channel.
         """
         self._membershipsrvc.join(user, channel)
-
-        # Send a list with the members in the channel
         members = self._membershipsrvc.get_channel_members(channel)
-        channel_members = ChannelMembersPayload(
-            channel_id=channel.id,
-            members=[UserFrom.model_validate(user) for user in members],
-        )
-        msg = ChannelMembers(payload=channel_members)
-        await self.send_to_channel(channel, msg)
-
+        await self.send_to_channel(channel, self._build_members_message(channel, members))
         await self._alert_user_join(user, channel)
 
     async def leave_channel(self, user: User, channel: Channel) -> None:
         """
         Remove a User from a Channel and send the updated members list and
-        an alert to to the Channel.
+        an alert to the Channel.
         """
         self._membershipsrvc.leave(user, channel)
-
-        # Send a list with the members in the channel
         members = self._membershipsrvc.get_channel_members(channel)
-        channel_members = ChannelMembersPayload(
-            channel_id=channel.id,
-            members=[UserFrom.model_validate(user) for user in members],
-        )
-        members_msg = ChannelMembers(payload=channel_members)
-        await self._broker.send_to_channel(members, members_msg)
-
+        await self._broker.send_to_channel(members, self._build_members_message(channel, members))
         await self._alert_user_left(user, channel)
 
     async def leave_all_channels(self, user: User) -> None:
@@ -78,9 +63,7 @@ class ChannelService:
         Remove a User from all of its joined Channels.
         """
         channels = self._membershipsrvc.leave_all(user)
-
-        for channel in channels:
-            await self.leave_channel(user, channel)
+        await asyncio.gather(*(self.leave_channel(user, channel) for channel in channels))
 
     def get_channel_members(self, channel: Channel) -> set[User]:
         """
@@ -117,6 +100,13 @@ class ChannelService:
         Check if User is member of a Channel.
         """
         return self._membershipsrvc.is_member(user, channel)
+
+    def _build_members_message(self, channel: Channel, members: set[User]) -> ChannelMembers:
+        payload = ChannelMembersPayload(
+            channel_id=channel.id,
+            members=[UserFrom.model_validate(u) for u in members],
+        )
+        return ChannelMembers(payload=payload)
 
     async def send_to_channel(self, channel: Channel, message: BaseMessage) -> None:
         """

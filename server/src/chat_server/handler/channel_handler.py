@@ -1,8 +1,4 @@
 import logging
-from datetime import datetime
-from uuid import uuid4
-
-from pydantic import ValidationError
 
 from chat_server.connection.channel import Channel
 from chat_server.connection.context import ConnectionContext
@@ -18,7 +14,6 @@ from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.messages import (
     ChannelJoin,
     ChannelLeave,
-    ChannelLeavePayload,
     ChatSend,
     ChatSendPayload,
     UserFrom,
@@ -45,13 +40,10 @@ async def handler_channel_join(
     try:
         manager.channel_srvc.create_channel(channel_response)
 
-        # Send previous messages
-        # HACK: Not really beautiful
         async with async_session() as session:
             history_messages = await crud.get_channel_messages(
                 session, msg_in.payload.channel_id
             )
-            print(f"{history_messages = }")
         if history_messages is not None:
             for history_msg in history_messages:
                 payload = ChatSendPayload(

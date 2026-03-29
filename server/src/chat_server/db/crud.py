@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import math
 from datetime import timedelta
@@ -5,7 +6,6 @@ from datetime import timedelta
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import query
 from sqlalchemy.sql import delete, select
 
 from chat_server.api.models import UserCreate, UserUpdate, UsersPublic
@@ -13,8 +13,6 @@ from chat_server.exceptions import UserNotFound, UsernameAlreadyExists
 from chat_server.db.models import MessageTable, MuteTable, UserTable
 from chat_server.protocol.messages import ChatSend
 from chat_server.security.utils import get_password_hash
-
-# TODO: User the new exceptions: UserNotFound and UsernameAlreadyExists
 
 
 async def create_user(session: AsyncSession, user_in: UserCreate) -> UserTable | None:
@@ -49,9 +47,6 @@ async def create_guest_user(session: AsyncSession) -> UserTable:
     """
     from random import randint
     from secrets import token_urlsafe
-
-    # Ensure there will be 0 in front
-    # e.g. 0024, 0432, 0002
 
     while True:
         num = str(randint(0, 9999)).zfill(4)
@@ -97,7 +92,6 @@ async def get_user_by_id(session: AsyncSession, id: int) -> UserTable | None:
     return await session.get(UserTable, id)
 
 
-# TODO: Is this return the best approach ?
 async def get_users_paginated(
     session: AsyncSession,
     page: int = 1,
@@ -122,14 +116,15 @@ async def get_users_paginated(
         users_stmt = users_stmt.where(UserTable.username.ilike(f"%{search}%"))
         count_stmt = count_stmt.where(UserTable.username.ilike(f"%{search}%"))
 
-    users = await session.scalars(users_stmt)
-    users = users.all()
-    total_users = await session.scalar(count_stmt) or 0
+    users_result, total_users = await asyncio.gather(
+        session.scalars(users_stmt),
+        session.scalar(count_stmt),
+    )
 
     return UsersPublic(
-        total_users=total_users,
-        total_pages=math.ceil(total_users / limit),
-        users=users,  # type: ignore
+        total_users=total_users or 0,
+        total_pages=math.ceil((total_users or 0) / limit),
+        users=users_result.all(),  # type: ignore
     )
 
 
@@ -142,17 +137,19 @@ async def get_user_messages(
     count_stmt = select(func.count(MessageTable.id)).where(
         MessageTable.sender_id == user_id
     )
-    count = await session.execute(count_stmt)
-
     messages_stmt = (
         select(MessageTable)
         .where(MessageTable.sender_id == user_id)
         .offset(offset)
         .limit(limit)
     )
-    messages = await session.scalars(messages_stmt)
 
-    return count.scalar(), messages.all()  # type: ignore
+    count_result, messages_result = await asyncio.gather(
+        session.execute(count_stmt),
+        session.scalars(messages_stmt),
+    )
+
+    return count_result.scalar(), messages_result.all()  # type: ignore
 
 
 async def update_user(
@@ -241,7 +238,6 @@ async def get_channel_messages(
     """
     Retrive all messages stored from a channel.
     """
-    # TODO: Paginate this
     stmt = select(MessageTable).where(MessageTable.channel_id == channel_id)
     res = await session.execute(stmt)
     return list(res.scalars().all())
@@ -259,11 +255,6 @@ async def mute_user(
     Store mute in database
     """
     try:
-        if not await get_user_by_id(session, target_id):
-            raise ValueError("Target user does not exist.")
-        if not await get_user_by_id(session, by_id):
-            raise ValueError("Issuer user does not exist.")
-
         mute_db = MuteTable(
             target_id=target_id,
             by_id=by_id,
@@ -287,21 +278,13 @@ async def get_mute(
     """
     Check if `target_id` is muted in `channel_id`.
     """
-    try:
-        if not await get_user_by_id(session, target_id):
-            raise ValueError("Target user does not exist.")
-
-        stmt = select(MuteTable).where(
-            MuteTable.target_id == target_id,
-            MuteTable.channel_id == channel_id,
-            (MuteTable.expires_at.is_(None)) | (MuteTable.expires_at > func.now()),
-        )
-        res = await session.execute(stmt)
-        return res.scalar_one_or_none()
-
-    except Exception as e:
-        logging.error(f"Failed to check mute: {e}")
-        raise e
+    stmt = select(MuteTable).where(
+        MuteTable.target_id == target_id,
+        MuteTable.channel_id == channel_id,
+        (MuteTable.expires_at.is_(None)) | (MuteTable.expires_at > func.now()),
+    )
+    res = await session.execute(stmt)
+    return res.scalar_one_or_none()
 
 
 async def unmute_user(session: AsyncSession, target_id: int, channel_id: int):

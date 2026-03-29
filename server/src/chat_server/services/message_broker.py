@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from fastapi import WebSocket
 from chat_server.connection.user import User
@@ -44,8 +45,4 @@ class MessageBroker:
         """
         Send a message to all members in a channel.
         """
-        for user in members:
-            await self.send_to_user(user, message)
-
-    # NOTE: send_broadcast() ?
-    # connections = self._registry.get_all()
+        await asyncio.gather(*(self.send_to_user(user, message) for user in members))

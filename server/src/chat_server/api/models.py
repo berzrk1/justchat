@@ -9,6 +9,20 @@ from pydantic.types import StringConstraints
 from chat_server.db.models import USERNAME_MAX_LENGTH
 
 
+def _validate_password_strength(v: str) -> str:
+    if not re.search(r"[A-Z]", v):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not re.search(r"[a-z]", v):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not re.search(r"\d", v):
+        raise ValueError("Password must contain at least one digit")
+    return v
+
+
+class OrmModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserCreate(BaseModel):
     username: Annotated[
         str, StringConstraints(True, min_length=3, max_length=USERNAME_MAX_LENGTH)
@@ -18,13 +32,7 @@ class UserCreate(BaseModel):
     @field_validator("password")
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
-            raise ValueError("Password must contain at least one digit")
-        return v
+        return _validate_password_strength(v)
 
 
 class UserUpdate(BaseModel):
@@ -40,23 +48,15 @@ class UserUpdate(BaseModel):
     @classmethod
     def validate_password_strength(cls, v: str) -> str:
         if v:
-            if not re.search(r"[A-Z]", v):
-                raise ValueError("Password must contain at least one uppercase letter")
-            if not re.search(r"[a-z]", v):
-                raise ValueError("Password must contain at least one lowercase letter")
-            if not re.search(r"\d", v):
-                raise ValueError("Password must contain at least one digit")
+            _validate_password_strength(v)
         return v
 
 
-class UserPublic(BaseModel):
+class UserPublic(OrmModel):
     id: int
     username: str
     is_guest: bool
     created_at: datetime
-
-    # Allows conversion from SQLAlchemy to Pydantic Model
-    model_config = ConfigDict(from_attributes=True)
 
 
 class UsersPublic(BaseModel):
@@ -65,14 +65,11 @@ class UsersPublic(BaseModel):
     users: list[UserPublic]
 
 
-class MessagePublic(BaseModel):
+class MessagePublic(OrmModel):
     channel_id: int
     sender_username: str
     timestamp: datetime
     content: str
-
-    # Allows conversion from SQLAlchemy to Pydantic Model
-    model_config = ConfigDict(from_attributes=True)
 
 
 class MessagesPublic(BaseModel):
@@ -89,11 +86,8 @@ class TokenContent(BaseModel):
     sub: str | None = None
 
 
-class Channel(BaseModel):
+class Channel(OrmModel):
     id: int
-
-    # Allows conversion from SQLAlchemy to Pydantic Model
-    model_config = ConfigDict(from_attributes=True)
 
 
 class ChannelsStats(BaseModel):
@@ -101,12 +95,10 @@ class ChannelsStats(BaseModel):
     channels: list[Channel]
 
 
-class ChannelMember(BaseModel):
+class ChannelMember(OrmModel):
     id: int
     username: str
     is_guest: bool
-    # Allows conversion from SQLAlchemy to Pydantic Model
-    model_config = ConfigDict(from_attributes=True)
 
 
 class ChannelMembers(BaseModel):

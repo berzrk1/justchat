@@ -29,17 +29,13 @@ class ConnectionManager:
     def __init__(
         self,
         connection_registry: ConnectionRegistry,
-        # channel_manager: ChannelManager,
         auth_service: AuthenticationService,
-        # membership_service: MembershipService,
         message_broker: MessageBroker,
         channel_service: ChannelService,
         moderation_service: ModerationService,
     ) -> None:
         self.connections = connection_registry
-        # self.channels = channel_manager
         self.auth = auth_service
-        # self.membership = membership_service
         self.broker = message_broker
         self.channel_srvc = channel_service
         self.moderation = moderation_service
@@ -57,13 +53,9 @@ class ConnectionManager:
         await websocket.accept()
 
         try:
-            # Wait for HELLO Message and
             hello_msg = await websocket.receive_text()
-            # Validate the message received is a proper HELLO
             hello = messages.Hello.model_validate_json(hello_msg)
             logging.debug(f"{hello =}")
-
-            # Authenticate User
             user = await self.auth.authenticate(hello.payload.token)
         except ValidationError as e:
             logging.warning(f"Invalid HELLO message {e}")
@@ -78,10 +70,8 @@ class ConnectionManager:
         payload = messages.HelloPayload(user=messages.UserFrom.model_validate(user))
         msg = messages.Hello(payload=payload)
 
-        # await websocket.send_text(msg.model_dump_json())
         await self.broker.send_to_websocket(websocket, msg)
 
-        # Register Connection
         ctx = ConnectionContext(websocket=websocket, user=user)
         self.connections.add(ctx)
 
@@ -97,7 +87,6 @@ class ConnectionManager:
             logging.warning("Disconnect called for unknown connection")
             return
 
-        # Leave all channels
         await self.channel_srvc.leave_all_channels(ctx.user)
 
         logging.info(f"Connection closed: {repr(ctx)}")
@@ -118,7 +107,6 @@ class ConnectionManager:
 
         logging.info(f"Received: {data}")
 
-        # Parse message
         msg = BaseMessage.from_json(data)
 
         if msg is None:
