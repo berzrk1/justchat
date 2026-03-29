@@ -28,7 +28,6 @@ Or watch a video demo:
 
 [![Demo Video](https://img.youtube.com/vi/whSQsNzMNC8/0.jpg)](https://www.youtube.com/watch?v=whSQsNzMNC8)
 
-
 ## Deployment
 
 <div align="center">
@@ -172,28 +171,15 @@ Go to the project directory
 cd justchat/
 ```
 
-Copy `docker-compose.dev.yml` to `docker-compose.yml`
+Deploying the **backend**:
 
 ```bash
-cp docker-compose.dev.yml docker-compose.yml
+cd server/
+cp .env.example .env # Make any needed modification, but the default works
+docker compose build && docker compose up -d
 ```
 
-Edit `docker-compose.yml` and set the environment variables to your needs
-or use default
-
-Build and run the container
-
-```bash
-docker compose build
-docker compose up -d
-# or `docker-compose` if using older docker compose
-
-# Or use the Makefile aliases
-make dev
-make run
-```
-
-To run the test environment for the frontend:
+Local dev for the **frontend**:
 
 ```bash
 cd client/web
