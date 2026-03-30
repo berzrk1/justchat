@@ -4,7 +4,7 @@ from chat_server.connection.user import User
 from chat_server.db import crud
 from chat_server.db.db import async_session
 from chat_server.security.utils import ALGORITHM
-from chat_server.settings import get_settings
+from chat_server.settings import settings
 
 
 class AuthenticationError(Exception):
@@ -29,9 +29,7 @@ class AuthenticationService:
         Validate the JWT token and retrieve the user from database.
         """
         try:
-            payload = jwt.decode(
-                token, get_settings().SECRET_KEY, algorithms=[ALGORITHM]
-            )
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
             user_id = payload.get("sub")
 
             if user_id is None:

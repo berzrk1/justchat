@@ -4,9 +4,7 @@ from typing import Any
 import jwt
 from passlib.hash import argon2
 
-from chat_server.settings import get_settings
-
-settings = get_settings()
+from chat_server.settings import settings
 
 ALGORITHM = "HS256"
 

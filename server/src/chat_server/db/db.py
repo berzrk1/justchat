@@ -3,9 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.sql import insert, select
 from chat_server.db.models import Base, UserTable
 from chat_server.security.utils import get_password_hash
-from chat_server.settings import get_settings
-
-settings = get_settings()
+from chat_server.settings import settings
 
 if settings.is_development:
     async_engine = create_async_engine(str(settings.DATABASE_URL))

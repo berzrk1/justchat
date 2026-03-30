@@ -1,12 +1,18 @@
 import logging
+
 from fastapi import Depends, HTTPException, status
 from fastapi.routing import APIRouter
 
 from chat_server.api.deps import get_current_user
-from chat_server.api.models import MessagesPublic, UserPublic, UserUpdate, UsersPublic
 from chat_server.db import crud
-from chat_server.exceptions import UserNotFound, UsernameAlreadyExists
 from chat_server.deps import DBSession
+from chat_server.exceptions import UsernameAlreadyExists, UserNotFound
+from chat_server.schemas.message import MessagesPublic
+from chat_server.schemas.user import (
+    UserPublic,
+    UsersPublic,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/users", tags=["dashboard-users"])
 

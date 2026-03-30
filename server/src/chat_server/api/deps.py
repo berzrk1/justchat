@@ -4,15 +4,13 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
-from chat_server.api.models import TokenContent
+from chat_server.schemas.jwt import TokenContent
 from chat_server.db import crud
 from chat_server.db.models import UserTable
 from chat_server.deps import DBSession
 from chat_server.security.utils import ALGORITHM
 from chat_server.services.dashboard_service import DashboardService
-from chat_server.settings import get_settings
-
-settings = get_settings()
+from chat_server.settings import settings
 
 oauth2_scheme = OAuth2PasswordBearer("/api/v1/auth/login")
 TokenDeps = Annotated[str, Depends(oauth2_scheme)]

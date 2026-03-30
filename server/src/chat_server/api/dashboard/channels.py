@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from chat_server.api.deps import DashbordSrvc, get_current_user
-from chat_server.api.models import ChannelMembers, ChannelsStats
+from chat_server.schemas.channel import ChannelMembers, ChannelsStats
 from chat_server.exceptions import ChannelDoesntExist
 
 

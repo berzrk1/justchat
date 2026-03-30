@@ -14,6 +14,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # Common Configuration
+    USERNAME_MAX_LENGTH: int = 30
+
     ENVIRONMENT: str
 
     # CORS Origin allowed
@@ -79,10 +82,4 @@ class Settings(BaseSettings):
         return self.ENVIRONMENT.lower() == "production"
 
 
-@lru_cache
-def get_settings() -> Settings:
-    """
-    Get cached settings instance.
-    Use this function to access settings throughout the application.
-    """
-    return Settings()
+settings = Settings()  # type: ignore

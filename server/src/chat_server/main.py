@@ -15,7 +15,7 @@ from chat_server.services.dashboard_service import DashboardService
 from chat_server.services.membership_service import MembershipService
 from chat_server.services.message_broker import MessageBroker
 from chat_server.services.moderation_service import ModerationService
-from chat_server.settings import get_settings
+from chat_server.settings import settings
 
 import logging
 import sys
@@ -32,8 +32,6 @@ logging.basicConfig(
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
-
-settings = get_settings()
 
 # API Routes
 api_router = APIRouter(prefix="/api/v1", tags=["v1"])
