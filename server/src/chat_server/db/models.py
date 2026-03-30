@@ -17,7 +17,7 @@ class UserTable(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(USERNAME_MAX_LENGTH), unique=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
-    created_at: Mapped[str] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
