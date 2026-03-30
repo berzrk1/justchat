@@ -83,7 +83,7 @@ class Token(BaseModel):
 
 
 class TokenContent(BaseModel):
-    sub: str | None = None
+    sub: int | None = None  # User ID
 
 
 class Channel(OrmModel):
