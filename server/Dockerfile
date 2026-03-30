@@ -25,7 +25,7 @@ ENTRYPOINT []
 
 FROM base AS dev
 USER nonroot
-CMD ["uv", "run", "fastapi", "dev", "--host", "0.0.0.0", "src/chat_server/main.py"]
+CMD ["uv", "run", "fastapi", "dev", "--host", "0.0.0.0", "chat_server/main.py"]
 
 FROM base AS prod
 # Install AWS Certs
@@ -36,4 +36,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 USER nonroot
-CMD ["uv", "run", "fastapi", "run", "--host", "0.0.0.0", "--workers", "4", "src/chat_server/main.py"]
+CMD ["uv", "run", "fastapi", "run", "--host", "0.0.0.0", "--workers", "4", "chat_server/main.py"]

@@ -8,8 +8,8 @@ from chat_server.api.models import UserCreate
 from chat_server.connection.channel import Channel
 from chat_server.connection.manager import ConnectionManager
 from chat_server.connection.user import User
-from chat_server.db.db import get_db
-from chat_server.db.models import Base
+from chat_server.database.db import get_db
+from chat_server.database.models import Base
 from chat_server.main import app
 from chat_server.protocol.messages import ChatSend, ChatSendPayload, UserFrom
 from chat_server.security.utils import generate_access_token
@@ -149,7 +149,7 @@ async def patched_session(test_engine):
     """
     async_session_maker = async_sessionmaker(test_engine, expire_on_commit=False)
 
-    with patch("chat_server.db.db.async_session", async_session_maker):
+    with patch("chat_server.database.db.async_session", async_session_maker):
         yield
 
 

@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from chat_server.api.models import UserCreate
-from chat_server.db import crud
+from chat_server.database import crud
 from chat_server.protocol.messages import ChatSend
 from chat_server.security.utils import get_password_hash, verify_password_hash
 

@@ -5,8 +5,8 @@ from datetime import datetime
 from chat_server.connection.channel import Channel
 from chat_server.connection.context import ConnectionContext
 from chat_server.connection.manager import ConnectionManager
-from chat_server.db import crud
-from chat_server.db.db import async_session
+from chat_server.database import crud
+from chat_server.database.db import async_session
 from chat_server.handler.decorators import (
     require_channel,
     require_membership,

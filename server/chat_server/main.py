@@ -6,7 +6,7 @@ from fastapi.websockets import WebSocketDisconnect
 from chat_server.api import auth
 from chat_server.api.dashboard.routes import dashboard_router
 from chat_server.connection.manager import ConnectionManager
-from chat_server.db.db import init_db
+from chat_server.database.core import init_db
 from chat_server.infrastructure.channel_manager import ChannelManager
 from chat_server.infrastructure.connection_registry import ConnectionRegistry
 from chat_server.services.authorization_service import AuthenticationService

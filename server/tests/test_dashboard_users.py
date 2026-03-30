@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient, head
 
 from chat_server.api.models import UserCreate
-from chat_server.db import crud
+from chat_server.database import crud
 
 API_URL = "/api/v1/dashboard"
 

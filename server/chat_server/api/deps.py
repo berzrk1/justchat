@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 from chat_server.schemas.jwt import TokenContent
-from chat_server.db import crud
-from chat_server.db.models import UserTable
+from chat_server.database import crud
+from chat_server.database.models import UserTable
 from chat_server.deps import DBSession
 from chat_server.security.utils import ALGORITHM
 from chat_server.services.dashboard_service import DashboardService

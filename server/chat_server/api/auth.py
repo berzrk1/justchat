@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from chat_server.schemas.jwt import Token
 from chat_server.schemas.user import UserCreate, UserPublic
-from chat_server.db import crud
+from chat_server.database import crud
 from chat_server.deps import DBSession
 from chat_server.security.utils import generate_access_token, verify_password_hash
 

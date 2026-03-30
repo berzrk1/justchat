@@ -4,7 +4,7 @@ import pytest
 from chat_server.api.models import ChannelMember, ChannelMembers, UserCreate
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
-from chat_server.db import crud
+from chat_server.database import crud
 from chat_server.exceptions import ChannelDoesntExist
 
 API_URL = "/api/v1/dashboard/channels"
