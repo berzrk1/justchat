@@ -111,8 +111,6 @@ class ConnectionManager:
 
         if msg is None:
             logging.warning(f"Client sent a malformed data: {msg}")
-            msg = BaseMessage.model_validate_json(data)
-
             await self.send_error(websocket, "Invalid message format")
             return
 
