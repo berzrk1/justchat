@@ -300,3 +300,4 @@ async def unmute_user(session: AsyncSession, target_id: int, channel_id: int):
             logging.info("Unmuted")
     except Exception as e:
         logging.error(f"Failed to unmute user in database: {e}")
+        raise
