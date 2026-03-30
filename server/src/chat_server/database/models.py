@@ -3,8 +3,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import Boolean, DateTime, Integer, String
-
-USERNAME_MAX_LENGTH = 30
+from chat_server.settings import settings
 
 
 class Base(DeclarativeBase):
@@ -15,7 +14,9 @@ class UserTable(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(USERNAME_MAX_LENGTH), unique=True)
+    username: Mapped[str] = mapped_column(
+        String(settings.USERNAME_MAX_LENGTH), unique=True
+    )
     hashed_password: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -35,7 +36,7 @@ class MessageTable(Base):
     channel_id: Mapped[int] = mapped_column(Integer)
     sender_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     sender_username: Mapped[str] = mapped_column(
-        String(USERNAME_MAX_LENGTH), nullable=False
+        String(settings.USERNAME_MAX_LENGTH), nullable=False
     )
     timestamp: Mapped[datetime] = mapped_column(DateTime)
     content: Mapped[str] = mapped_column(String)
