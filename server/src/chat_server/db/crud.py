@@ -260,6 +260,7 @@ async def mute_user(
             by_id=by_id,
             channel_id=channel_id,
             expires_at=func.now() + timedelta(seconds=duration) if duration else None,
+            reason=reason,
         )
 
         session.add(mute_db)
