@@ -32,7 +32,6 @@ async def handler_channel_join(
     """
     Handle incoming message from Channel Join
     """
-
     channel_response = Channel(
         id=msg_in.payload.channel_id, name=f"Channel {msg_in.payload.channel_id}"
     )

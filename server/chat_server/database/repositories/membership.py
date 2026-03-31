@@ -3,9 +3,9 @@ from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
 
 
-class MembershipService:
+class MembershipRepository:
     """
-    Manage the User and Channel relation.
+    User and Channel connection repository.
 
     Keep track of "who" is connected to "where".
     """

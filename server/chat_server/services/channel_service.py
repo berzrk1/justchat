@@ -15,7 +15,7 @@ from chat_server.protocol.messages import (
     ChannelMembersPayload,
     UserFrom,
 )
-from chat_server.services.membership_service import MembershipService
+from chat_server.database.repositories.membership import MembershipRepository
 from chat_server.infrastructure.message_broker import MessageBroker
 
 
@@ -29,7 +29,7 @@ class ChannelService:
     def __init__(
         self,
         channel_repository: ChannelRepository,
-        membership_srvc: MembershipService,
+        membership_srvc: MembershipRepository,
         message_broker: MessageBroker,
     ) -> None:
         self._chrepo = channel_repository
