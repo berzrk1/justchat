@@ -85,7 +85,6 @@ auth_service = AuthenticationService()
 membership_service = MembershipService()
 message_broker = MessageBroker(connection_registry)
 channel_service = ChannelService(channel_manager, membership_service, message_broker)
-moderation_service = ModerationService()
 dashboard_service = DashboardService(channel_service)
 
 # Store dashboard_serivce in app.state for access in endpoints
@@ -96,7 +95,6 @@ manager = ConnectionManager(
     auth_service,
     message_broker,
     channel_service,
-    moderation_service,
 )
 
 

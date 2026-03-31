@@ -1,7 +1,6 @@
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
-from chat_server.database import crud
-from chat_server.database.db import async_session
+from chat_server.database.repositories.moderation import ModerationRepository
 
 
 class ModerationService:
@@ -11,32 +10,21 @@ class ModerationService:
     Manage kick, bans, mutes, ...
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, mod_repo: ModerationRepository) -> None:
+        self._repo = mod_repo
 
     async def mute_user(
         self,
         target: User,
         issuer: User,
         channel: Channel,
-        duration: int | None = None,
-        reason="",
+        duration: int = 60,
+        reason: str = "",
     ):
-        async with async_session() as session:
-            await crud.mute_user(
-                session, target.id, issuer.id, channel.id, duration, reason
-            )
+        await self._repo.mute(target.id, issuer.id, channel.id, duration, reason)
 
     async def unmute_user(self, target: User, channel: Channel):
-        """
-        Unmute user
-        """
-        async with async_session() as session:
-            await crud.unmute_user(session, target.id, channel.id)
+        await self._repo.unmute(target.id, channel.id)
 
     async def is_muted(self, target: User, channel: Channel) -> bool:
-        """
-        Check if `target` is muted at the `channel`.
-        """
-        async with async_session() as session:
-            return await crud.get_mute(session, target.id, channel.id) is not None
+        return True if await self._repo.is_muted(target.id, channel.id) else False

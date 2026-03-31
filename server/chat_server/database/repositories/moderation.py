@@ -8,7 +8,7 @@ from sqlalchemy.sql import select
 from chat_server.database.models import MuteTable
 
 
-class MuteRepository:
+class ModerationRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

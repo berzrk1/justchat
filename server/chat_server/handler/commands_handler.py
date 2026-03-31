@@ -1,3 +1,4 @@
+from chat_server.database.factories import moderation_srvc_factory
 import logging
 from datetime import datetime
 from uuid import uuid4
@@ -74,27 +75,28 @@ async def handler_mute(
         )
 
         if target:
-            await manager.moderation.mute_user(
-                target=target,
-                issuer=ctx.user,
-                channel=channel,
-                duration=payload.duration,
-                reason=payload.reason,
-            )
-            logging.info(f"{repr(ctx.user)} is muting {target}.")
+            async with moderation_srvc_factory() as srvc:
+                await srvc.mute_user(
+                    target=target,
+                    issuer=ctx.user,
+                    channel=channel,
+                    duration=payload.duration,
+                    reason=payload.reason,
+                )
+                logging.info(f"{repr(ctx.user)} is muting {target}.")
 
-            server_payload = MuteCommandPayload(
-                channel_id=channel.id,
-                target=target.username,
-                duration=payload.duration,
-                reason=payload.reason,
-            )
+                server_payload = MuteCommandPayload(
+                    channel_id=channel.id,
+                    target=target.username,
+                    duration=payload.duration,
+                    reason=payload.reason,
+                )
 
-            server_rsp = MuteCommand(
-                timestamp=datetime.now(), id=uuid4(), payload=server_payload
-            )
+                server_rsp = MuteCommand(
+                    timestamp=datetime.now(), id=uuid4(), payload=server_payload
+                )
 
-            await manager.channel_srvc.send_to_channel(channel, server_rsp)
+                await manager.channel_srvc.send_to_channel(channel, server_rsp)
 
     except Exception as e:
         logging.error(f"Error handling CHAT_MUTE: {e}")
@@ -122,19 +124,20 @@ async def handler_unmute(
         )
 
         if target:
-            await manager.moderation.unmute_user(target, channel)
-            logging.info(f"{repr(ctx.user)} is unmuting {target}.")
+            async with moderation_srvc_factory() as srvc:
+                await srvc.unmute_user(target, channel)
+                logging.info(f"{repr(ctx.user)} is unmuting {target}.")
 
-            server_payload = UnMuteCommandPayload(
-                channel_id=channel.id,
-                target=target.username,
-            )
+                server_payload = UnMuteCommandPayload(
+                    channel_id=channel.id,
+                    target=target.username,
+                )
 
-            server_rsp = UnMuteCommand(
-                timestamp=datetime.now(), id=uuid4(), payload=server_payload
-            )
+                server_rsp = UnMuteCommand(
+                    timestamp=datetime.now(), id=uuid4(), payload=server_payload
+                )
 
-            await manager.channel_srvc.send_to_channel(channel, server_rsp)
+                await manager.channel_srvc.send_to_channel(channel, server_rsp)
 
     except Exception as e:
         logging.error(f"Error handling CHAT_UNMUTE: {e}")

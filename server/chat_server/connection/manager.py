@@ -32,13 +32,11 @@ class ConnectionManager:
         auth_service: AuthenticationService,
         message_broker: MessageBroker,
         channel_service: ChannelService,
-        moderation_service: ModerationService,
     ) -> None:
         self.connections = connection_registry
         self.auth = auth_service
         self.broker = message_broker
         self.channel_srvc = channel_service
-        self.moderation = moderation_service
 
     async def accept_connection(self, websocket: WebSocket) -> None:
         """
