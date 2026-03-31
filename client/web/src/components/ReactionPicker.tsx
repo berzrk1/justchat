@@ -1,7 +1,6 @@
 import { useState } from 'react'
 
-// Basic emoji set for reactions
-const BASIC_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥']
+const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥']
 
 interface ReactionPickerProps {
   onSelect: (emote: string) => void
@@ -17,29 +16,42 @@ export function ReactionPicker({ onSelect, onClose }: ReactionPickerProps) {
     onClose()
   }
 
-  const handleClickOutside = () => {
-    setIsOpen(false)
-    onClose()
-  }
-
   if (!isOpen) return null
 
   return (
     <>
-      {/* Backdrop */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => { setIsOpen(false); onClose() }} />
       <div
-        className="fixed inset-0 z-40"
-        onClick={handleClickOutside}
-      />
-
-      {/* Picker */}
-      <div className="absolute bottom-full left-0 mb-2 bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-50 border border-gray-700">
-        {BASIC_EMOJIS.map((emoji) => (
+        className="popup-appear"
+        style={{
+          position: 'absolute',
+          bottom: 'calc(100% + 6px)',
+          left: 0,
+          background: 'var(--surface-2)',
+          border: '1px solid var(--border-bright)',
+          padding: '8px',
+          display: 'flex',
+          gap: '2px',
+          zIndex: 50,
+        }}
+      >
+        {EMOJIS.map((emoji) => (
           <button
             key={emoji}
             onClick={() => handleSelect(emoji)}
-            className="text-2xl hover:scale-125 transition-transform p-1 rounded hover:bg-gray-700"
-            title={`React with ${emoji}`}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '16px',
+              padding: '4px 5px',
+              borderRadius: '2px',
+              lineHeight: 1,
+              transition: 'background 0.1s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-3)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+            title={emoji}
           >
             {emoji}
           </button>

@@ -1,43 +1,34 @@
-import type { ErrorMessage as ErrorMessageType } from '../../types/messages';
+import type { ErrorMessage as ErrorMessageType } from '../../types/messages'
 
 interface ErrorMessageProps {
-  message: ErrorMessageType;
+  message: ErrorMessageType
+}
+
+function formatTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 export function ErrorMessage({ message }: ErrorMessageProps) {
-  const { payload, timestamp } = message;
+  const { payload, timestamp } = message
 
   return (
-    <div className="relative p-4 bg-gradient-to-r from-red-50 to-rose-50 rounded-lg shadow-md border-l-4 border-red-500">
-      {/* Error indicator badge */}
-      <div className="absolute top-2 right-2">
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          ERROR
-        </span>
-      </div>
-
-      {/* Message header */}
-      <div className="flex items-center gap-2 mb-2 pr-24">
-        <div className="flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full font-semibold text-sm">
-          !
-        </div>
-        <div className="flex flex-col">
-          <span className="font-semibold text-red-900">
-            Error
-          </span>
-          <span className="text-xs text-gray-500">
-            {new Date(timestamp).toLocaleTimeString()}
-          </span>
-        </div>
-      </div>
-
-      {/* Error message content */}
-      <div className="pl-10 text-red-800 leading-relaxed font-medium">
+    <div className="msg-appear" style={{
+      display: 'flex',
+      padding: '3px 20px',
+      gap: '0',
+      alignItems: 'baseline',
+      background: 'rgba(255, 68, 102, 0.04)',
+      borderLeft: '2px solid rgba(255, 68, 102, 0.3)',
+    }}>
+      <span style={{ width: '56px', minWidth: '56px', color: 'var(--text-3)', fontSize: '15px', userSelect: 'none', flexShrink: 0 }}>
+        {formatTime(timestamp)}
+      </span>
+      <span style={{ width: '125px', minWidth: '125px', color: 'var(--text-error)', fontSize: '16px', flexShrink: 0, fontWeight: '500' }}>
+        error
+      </span>
+      <span style={{ color: 'var(--text-error)', fontSize: '16px', opacity: 0.85 }}>
         {payload.detail}
-      </div>
+      </span>
     </div>
-  );
+  )
 }

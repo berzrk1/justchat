@@ -9,6 +9,27 @@ interface LoginModalProps {
   onSwitchToSignup?: () => void
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  borderBottom: '1px solid var(--border-bright)',
+  outline: 'none',
+  color: 'var(--text-1)',
+  fontSize: '18px',
+  padding: '5px 0',
+  caretColor: 'var(--accent)',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  color: 'var(--text-3)',
+  fontSize: '14px',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  marginBottom: '5px',
+}
+
 export function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToSignup }: LoginModalProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -19,28 +40,15 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToSignup }
     e.preventDefault()
     setError(null)
     setIsLoading(true)
-
     try {
       const response = await authService.login({ username, password })
-
-      // Store token securely
       tokenStorage.setToken(response.access_token, response.expires_in)
-
-      // Call success callback with username
       onLoginSuccess(username)
-
-      // Close modal
       onClose()
-
-      // Reset form
       setUsername('')
       setPassword('')
     } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.detail || err.message)
-      } else {
-        setError('An unexpected error occurred')
-      }
+      setError(err instanceof AuthError ? (err.detail || err.message) : 'unexpected error')
     } finally {
       setIsLoading(false)
     }
@@ -49,94 +57,129 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess, onSwitchToSignup }
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Login</h2>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50,
+    }}>
+      <div
+        className="modal-appear"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border-bright)',
+          padding: '30px',
+          width: '100%',
+          maxWidth: '400px',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: 'var(--accent)', fontSize: '15px' }}>›</span>
+            <span style={{ color: 'var(--text-2)', fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              login
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-            aria-label="Close"
+            style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '19px', lineHeight: 1 }}
           >
-            ×
+            ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+        {error && (
+          <div style={{
+            color: 'var(--text-error)',
+            fontSize: '15px',
+            padding: '8px 10px',
+            background: 'rgba(255, 68, 102, 0.08)',
+            border: '1px solid rgba(255, 68, 102, 0.2)',
+            marginBottom: '20px',
+          }}>
+            {error}
+          </div>
+        )}
 
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={labelStyle}>username</label>
             <input
               type="text"
-              id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your username"
+              style={inputStyle}
+              placeholder="your username"
               required
               disabled={isLoading}
               autoFocus
+              autoComplete="username"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div style={{ marginBottom: '30px' }}>
+            <label style={labelStyle}>password</label>
             <input
               type="password"
-              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your password"
+              style={inputStyle}
+              placeholder="••••••••"
               required
               disabled={isLoading}
+              autoComplete="current-password"
             />
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              style={{
+                flex: 1,
+                background: 'none',
+                border: '1px solid var(--border-bright)',
+                color: 'var(--text-2)',
+                cursor: 'pointer',
+                padding: '9px',
+                fontSize: '16px',
+              }}
             >
-              Cancel
+              cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                flex: 1,
+                background: 'var(--accent-dim)',
+                border: '1px solid var(--accent)',
+                color: 'var(--accent)',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: '9px',
+                fontSize: '16px',
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            >
+              {isLoading ? '...' : 'login'}
             </button>
           </div>
         </form>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <p>
-            Don't have an account?{' '}
-            {onSwitchToSignup ? (
-              <button
-                type="button"
-                onClick={onSwitchToSignup}
-                className="text-blue-500 hover:text-blue-600 font-medium"
-              >
-                Sign up
-              </button>
-            ) : (
-              <span>Sign up coming soon!</span>
-            )}
-          </p>
-        </div>
+        {onSwitchToSignup && (
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <span style={{ color: 'var(--text-3)', fontSize: '15px' }}>no account? </span>
+            <button
+              type="button"
+              onClick={onSwitchToSignup}
+              style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '15px' }}
+            >
+              sign up
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

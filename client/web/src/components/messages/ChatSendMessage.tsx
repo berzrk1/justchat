@@ -6,134 +6,149 @@ import { MessageBuilder } from '../../services/messageBuilder'
 import { ReactionPicker } from '../ReactionPicker'
 
 interface ChatSendMessageProps {
-  message: ChatSendMessageServerToClient;
-  currentUsername?: string;
+  message: ChatSendMessageServerToClient
+  currentUsername?: string
+}
+
+function getUserColor(username: string): string {
+  const palette = ['#f472b6', '#a78bfa', '#60a5fa', '#34d399', '#fb923c', '#facc15', '#22d3ee', '#f87171']
+  const hash = username.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return palette[hash % palette.length]
+}
+
+function formatTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 export function ChatSendMessageComponent({ message, currentUsername }: ChatSendMessageProps) {
-  const { payload, timestamp, id } = message;
-  const sender = payload.sender?.username || "Unknown";
-  const isOwnMessage = currentUsername && sender === currentUsername;
+  const { payload, timestamp, id } = message
+  const sender = payload.sender?.username || 'unknown'
+  const isOwn = !!currentUsername && sender === currentUsername
   const { getMessageReactions } = useReactions()
   const { sendMessage } = useWebSocket()
   const [showPicker, setShowPicker] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
-  const messageReactions = id ? getMessageReactions(id) : new Map()
+  const reactions = id ? getMessageReactions(id) : new Map<string, number>()
+  const userColor = isOwn ? 'var(--text-own)' : getUserColor(sender)
 
-  const handleAddReaction = (emote: string) => {
+  const handleAdd = (emote: string) => {
     if (!id) return
-    const reactMsg = MessageBuilder.reactAdd(payload.channel_id, id, emote)
-    sendMessage(reactMsg)
+    sendMessage(MessageBuilder.reactAdd(payload.channel_id, id, emote))
   }
 
-  const handleRemoveReaction = (emote: string) => {
+  const handleRemove = (emote: string) => {
     if (!id) return
-    const reactMsg = MessageBuilder.reactRemove(payload.channel_id, id, emote)
-    sendMessage(reactMsg)
-  }
-
-  if (isOwnMessage) {
-    return (
-      <div className="flex justify-end">
-        <div className="max-w-md">
-          <div className="relative p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-md border-r-4 border-green-500 group">
-            <div className="text-gray-800 leading-relaxed mb-2">
-              {payload.content}
-            </div>
-
-            {messageReactions.size > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {Array.from(messageReactions.entries()).map(([emote, count]) => (
-                  <button
-                    key={emote}
-                    onClick={() => handleRemoveReaction(emote)}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-sm hover:bg-gray-100 border border-gray-200"
-                  >
-                    <span>{emote}</span>
-                    <span className="text-xs text-gray-600">{count}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="relative">
-                {showPicker && (
-                  <ReactionPicker
-                    onSelect={handleAddReaction}
-                    onClose={() => setShowPicker(false)}
-                  />
-                )}
-                <button
-                  onClick={() => setShowPicker(!showPicker)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-lg hover:scale-125"
-                  title="Add reaction"
-                >
-                  😊
-                </button>
-              </div>
-              <span>{new Date(timestamp).toLocaleTimeString()}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    sendMessage(MessageBuilder.reactRemove(payload.channel_id, id, emote))
   }
 
   return (
-    <div className="flex justify-start">
-      <div className="max-w-md">
-        <div className="relative p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md border-l-4 border-blue-500 group">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full font-semibold text-sm">
-              {sender[0].toUpperCase()}
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-gray-900">
-                {sender}
-              </span>
-              <span className="text-xs text-gray-500">
-                {new Date(timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-          </div>
+    <div
+      className="msg-appear"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        padding: '3px 20px',
+        background: isOwn ? 'rgba(34, 197, 94, 0.05)' : 'transparent',
+        borderLeft: `2px solid ${isOwn ? 'rgba(34, 197, 94, 0.3)' : 'transparent'}`,
+        gap: '0',
+      }}
+    >
+      {/* Timestamp */}
+      <span style={{
+        width: '56px',
+        minWidth: '56px',
+        color: 'var(--text-3)',
+        fontSize: '15px',
+        paddingTop: '1px',
+        userSelect: 'none',
+        flexShrink: 0,
+      }}>
+        {formatTime(timestamp)}
+      </span>
 
-          <div className="pl-10 text-gray-800 leading-relaxed mb-2">
-            {payload.content}
-          </div>
+      {/* Username */}
+      <span style={{
+        width: '100px',
+        minWidth: '100px',
+        color: userColor,
+        fontWeight: '500',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        paddingTop: '1px',
+        paddingRight: '8px',
+        flexShrink: 0,
+        fontSize: '16px',
+      }}>
+        {sender}
+      </span>
 
-          {messageReactions.size > 0 && (
-            <div className="flex flex-wrap gap-1 pl-10 mb-2">
-              {Array.from(messageReactions.entries()).map(([emote, count]) => (
-                <button
-                  key={emote}
-                  onClick={() => handleRemoveReaction(emote)}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-white rounded-full text-sm hover:bg-gray-100 border border-gray-200"
-                >
-                  <span>{emote}</span>
-                  <span className="text-xs text-gray-600">{count}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="pl-10 relative">
-            {showPicker && (
-              <ReactionPicker
-                onSelect={handleAddReaction}
-                onClose={() => setShowPicker(false)}
-              />
-            )}
-            <button
-              onClick={() => setShowPicker(!showPicker)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-lg hover:scale-125"
-              title="Add reaction"
-            >
-              😊
-            </button>
-          </div>
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          color: isOwn ? 'rgba(232, 232, 232, 0.85)' : 'var(--text-1)',
+          wordBreak: 'break-word',
+          lineHeight: '1.5',
+        }}>
+          {payload.content}
         </div>
+
+        {/* Reactions */}
+        {(reactions.size > 0 || hovered) && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            marginTop: '4px',
+            flexWrap: 'wrap',
+          }}>
+            {Array.from(reactions.entries()).map(([emote, count]) => (
+              <button
+                key={emote}
+                onClick={() => handleRemove(emote)}
+                style={{
+                  background: 'var(--surface-3)',
+                  border: '1px solid var(--border-bright)',
+                  color: 'var(--text-1)',
+                  cursor: 'pointer',
+                  padding: '2px 8px',
+                  fontSize: '15px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  lineHeight: 1.4,
+                }}
+              >
+                {emote}
+                <span style={{ color: 'var(--text-2)', fontSize: '14px' }}>{count}</span>
+              </button>
+            ))}
+            <div style={{ position: 'relative' }}>
+              {showPicker && (
+                <ReactionPicker onSelect={handleAdd} onClose={() => setShowPicker(false)} />
+              )}
+              <button
+                onClick={() => setShowPicker(v => !v)}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-3)',
+                  cursor: 'pointer',
+                  padding: '2px 9px',
+                  fontSize: '15px',
+                  opacity: hovered ? 0.8 : 0,
+                  transition: 'opacity 0.1s',
+                }}
+                title="React"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  );
+  )
 }

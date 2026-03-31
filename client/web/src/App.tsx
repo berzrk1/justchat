@@ -72,9 +72,7 @@ function App() {
     messages.forEach((message, index) => {
       const messageKey = message.id || `${message.timestamp}-${message.type}-${index}`
 
-      if (processedMessageIds.current.has(messageKey)) {
-        return
-      }
+      if (processedMessageIds.current.has(messageKey)) return
 
       if (message.type === 'channel_members') {
         const payload = message.payload as { channel_id: number; members: { username: string; is_guest: boolean }[] }
@@ -83,13 +81,11 @@ function App() {
           isOnline: true,
           isGuest: m.is_guest
         }))
-
         setChannelMembers(prev => {
           const updated = new Map(prev)
           updated.set(payload.channel_id, members)
           return updated
         })
-
         processedMessageIds.current.add(messageKey)
       }
     })
@@ -99,9 +95,7 @@ function App() {
     messages.forEach((message, index) => {
       const messageKey = message.id || `${message.timestamp}-${message.type}-${index}`
 
-      if (processedMessageIds.current.has(messageKey)) {
-        return
-      }
+      if (processedMessageIds.current.has(messageKey)) return
 
       if (message.type === 'chat_typing') {
         const payload = message.payload as { channel_id: number; user?: { username: string } }
@@ -121,9 +115,7 @@ function App() {
         const timeoutKey = `${channelId}-${typingUsername}`
 
         const existingTimeout = typingTimeoutsRef.current.get(timeoutKey)
-        if (existingTimeout) {
-          clearTimeout(existingTimeout)
-        }
+        if (existingTimeout) clearTimeout(existingTimeout)
 
         setTypingUsers(prev => {
           const updated = new Map(prev)
@@ -151,7 +143,6 @@ function App() {
         }, 10000)
 
         typingTimeoutsRef.current.set(timeoutKey, timeout)
-
         processedMessageIds.current.add(messageKey)
       }
 
@@ -173,11 +164,8 @@ function App() {
             const channelTyping = updated.get(channelId)
             if (channelTyping) {
               channelTyping.delete(senderUsername)
-              if (channelTyping.size === 0) {
-                updated.delete(channelId)
-              } else {
-                updated.set(channelId, new Map(channelTyping))
-              }
+              if (channelTyping.size === 0) updated.delete(channelId)
+              else updated.set(channelId, new Map(channelTyping))
             }
             return updated
           })
@@ -197,41 +185,33 @@ function App() {
     messages.forEach((message, index) => {
       const messageKey = message.id || `${message.timestamp}-${message.type}-${index}`
 
-      if (processedMessageIds.current.has(messageKey)) {
-        return
-      }
+      if (processedMessageIds.current.has(messageKey)) return
 
       if (message.type === 'chat_mute') {
         const payload = message.payload as { channel_id: number; target: string; duration?: number }
-
         if (payload.target === username) {
           if (payload.duration) {
-            const endTime = Date.now() + (payload.duration * 1000)
-            setMuteEndTime(endTime)
+            setMuteEndTime(Date.now() + (payload.duration * 1000))
             setMuteTimeRemaining(payload.duration)
           } else {
             setMuteEndTime(-1)
             setMuteTimeRemaining(0)
           }
         }
-
         processedMessageIds.current.add(messageKey)
       }
 
       if (message.type === 'chat_unmute') {
         const payload = message.payload as { channel_id: number; target: string }
-
         if (payload.target === username) {
           setMuteEndTime(null)
           setMuteTimeRemaining(0)
         }
-
         processedMessageIds.current.add(messageKey)
       }
 
       if (message.type === 'chat_kick') {
         const payload = message.payload as { channel_id: number; target: string; reason?: string }
-
         if (payload.target === username) {
           const channelId = payload.channel_id
           const channelName = channels.find(c => c.id === channelId)?.name || `Channel ${channelId}`
@@ -241,15 +221,12 @@ function App() {
           alert(alertMessage)
 
           joinedChannelsRef.current.delete(channelId)
-
           setChannels(prev => prev.filter(c => c.id !== channelId))
-
           setChannelMembers(prev => {
             const updated = new Map(prev)
             updated.delete(channelId)
             return updated
           })
-
           setCurrentChannelId(prev => {
             if (prev === channelId) {
               const remaining = Array.from(joinedChannelsRef.current)
@@ -258,7 +235,6 @@ function App() {
             return prev
           })
         }
-
         processedMessageIds.current.add(messageKey)
       }
     })
@@ -270,7 +246,6 @@ function App() {
     const interval = setInterval(() => {
       const timeLeft = Math.max(0, Math.ceil((muteEndTime - Date.now()) / 1000))
       setMuteTimeRemaining(timeLeft)
-
       if (timeLeft === 0) {
         setMuteEndTime(null)
         setMuteTimeRemaining(0)
@@ -282,24 +257,12 @@ function App() {
 
   const filteredMessages = currentChannelId !== null
     ? messages.filter((msg: Message) => {
-        if (msg.type === 'chat_send' && 'channel_id' in msg.payload) {
-          return msg.payload.channel_id === currentChannelId
-        }
-        if ((msg.type === 'channel_join' || msg.type === 'channel_leave') && 'channel_id' in msg.payload) {
-          return msg.payload.channel_id === currentChannelId
-        }
-        if (msg.type === 'chat_kick' && 'channel_id' in msg.payload) {
-          return msg.payload.channel_id === currentChannelId
-        }
-        if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) {
-          return msg.payload.channel_id === currentChannelId
-        }
-        if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) {
-          return msg.payload.channel_id === currentChannelId
-        }
-        if (msg.type === 'error') {
-          return true
-        }
+        if (msg.type === 'chat_send' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+        if ((msg.type === 'channel_join' || msg.type === 'channel_leave') && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+        if (msg.type === 'chat_kick' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+        if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+        if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+        if (msg.type === 'error') return true
         return false
       })
     : []
@@ -320,17 +283,14 @@ function App() {
       return
     }
 
-    const channelJoinMessage = MessageBuilder.channelJoin(channelId)
-    wsSendMessage(channelJoinMessage)
-
+    wsSendMessage(MessageBuilder.channelJoin(channelId))
     joinedChannelsRef.current.add(channelId)
 
     if (!channels.find(c => c.id === channelId)) {
-      setChannels(prev => [...prev, { id: channelId, name: `Channel ${channelId}` }])
+      setChannels(prev => [...prev, { id: channelId, name: `channel ${channelId}` }])
     }
 
     setCurrentChannelId(channelId)
-
     setIsJoinModalOpen(false)
     setJoinChannelId('')
   }
@@ -340,22 +300,17 @@ function App() {
   }
 
   function handleLeaveChannel(channelId: number) {
-    const leaveMessage = MessageBuilder.channelLeave(channelId)
-    wsSendMessage(leaveMessage)
-
+    wsSendMessage(MessageBuilder.channelLeave(channelId))
     joinedChannelsRef.current.delete(channelId)
-
     setChannels(prev => prev.filter(c => c.id !== channelId))
-
     setChannelMembers(prev => {
       const updated = new Map(prev)
       updated.delete(channelId)
       return updated
     })
-
     if (currentChannelId === channelId) {
-      const remainingChannels = channels.filter(c => c.id !== channelId)
-      setCurrentChannelId(remainingChannels.length > 0 ? remainingChannels[0].id : null)
+      const remaining = channels.filter(c => c.id !== channelId)
+      setCurrentChannelId(remaining.length > 0 ? remaining[0].id : null)
     }
   }
 
@@ -378,14 +333,11 @@ function App() {
       }
     } else {
       setShowCommandAutocomplete(false)
-
       if (currentChannelId !== null && newMessage.length > 0 && isConnected) {
         const now = Date.now()
         const lastSent = lastTypingSentRef.current.get(currentChannelId) || 0
-
         if (now - lastSent > 8000) {
-          const typingMessage = MessageBuilder.typingStart(currentChannelId)
-          wsSendMessage(typingMessage)
+          wsSendMessage(MessageBuilder.typingStart(currentChannelId))
           lastTypingSentRef.current.set(currentChannelId, now)
         }
       }
@@ -393,29 +345,23 @@ function App() {
   }
 
   function handleCommandSelect(command: Command) {
-    const commandText = `/${command.name} `
-    setMessage(commandText)
+    setMessage(`/${command.name} `)
     setShowCommandAutocomplete(false)
     messageInputRef.current?.focus()
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (!showCommandAutocomplete) return
-
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedCommandIndex(prev =>
-        prev < filteredCommands.length - 1 ? prev + 1 : prev
-      )
+      setSelectedCommandIndex(prev => prev < filteredCommands.length - 1 ? prev + 1 : prev)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setSelectedCommandIndex(prev => (prev > 0 ? prev - 1 : 0))
+      setSelectedCommandIndex(prev => prev > 0 ? prev - 1 : 0)
     } else if (e.key === 'Tab' || (e.key === 'Enter' && filteredCommands.length > 0)) {
       e.preventDefault()
       const selected = filteredCommands[selectedCommandIndex]
-      if (selected) {
-        handleCommandSelect(selected)
-      }
+      if (selected) handleCommandSelect(selected)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setShowCommandAutocomplete(false)
@@ -430,9 +376,7 @@ function App() {
       return
     }
 
-    if (!message.trim() || !isConnected) {
-      return
-    }
+    if (!message.trim() || !isConnected) return
 
     if (message.startsWith('/')) {
       const parsed = parseCommand(message)
@@ -442,20 +386,13 @@ function App() {
       }
 
       if (parsed.command === 'kick') {
-        if (parsed.args.length < 1) {
-          alert('Usage: /kick <target> [reason]')
-          return
-        }
+        if (parsed.args.length < 1) { alert('Usage: /kick <target> [reason]'); return }
         const target = parsed.args[0]
         const reason = parsed.args.slice(1).join(' ') || undefined
-        const kickMessage = MessageBuilder.chatKick(currentChannelId, target, reason)
-        wsSendMessage(kickMessage)
+        wsSendMessage(MessageBuilder.chatKick(currentChannelId, target, reason))
         setMessage('')
       } else if (parsed.command === 'mute') {
-        if (parsed.args.length < 1) {
-          alert('Usage: /mute <target> [duration] [reason]')
-          return
-        }
+        if (parsed.args.length < 1) { alert('Usage: /mute <target> [duration] [reason]'); return }
         const target = parsed.args[0]
         let duration: number | undefined = undefined
         let reasonStartIndex = 1
@@ -467,24 +404,17 @@ function App() {
           }
         }
         const reason = parsed.args.slice(reasonStartIndex).join(' ') || undefined
-        const muteMessage = MessageBuilder.chatMute(currentChannelId, target, duration, reason)
-        wsSendMessage(muteMessage)
+        wsSendMessage(MessageBuilder.chatMute(currentChannelId, target, duration, reason))
         setMessage('')
       } else if (parsed.command === 'unmute') {
-        if (parsed.args.length < 1) {
-          alert('Usage: /unmute <target>')
-          return
-        }
-        const target = parsed.args[0]
-        const unmuteMessage = MessageBuilder.chatUnmute(currentChannelId, target)
-        wsSendMessage(unmuteMessage)
+        if (parsed.args.length < 1) { alert('Usage: /unmute <target>'); return }
+        wsSendMessage(MessageBuilder.chatUnmute(currentChannelId, parsed.args[0]))
         setMessage('')
       } else {
         alert(`Unknown command: ${parsed.command}`)
       }
     } else {
-      const chatMessage = MessageBuilder.chatSend(currentChannelId, message)
-      wsSendMessage(chatMessage)
+      wsSendMessage(MessageBuilder.chatSend(currentChannelId, message))
       setMessage('')
       lastTypingSentRef.current.delete(currentChannelId)
     }
@@ -502,63 +432,116 @@ function App() {
     reconnect()
   }
 
+  // Typing indicator text
+  const currentTyping = currentChannelId !== null ? typingUsers.get(currentChannelId) : null
+  const typingText = (() => {
+    if (!currentTyping || currentTyping.size === 0) return null
+    const names = Array.from(currentTyping.keys())
+    if (names.length === 1) return names[0]
+    if (names.length === 2) return `${names[0]}, ${names[1]}`
+    return `${names[0]} +${names.length - 1}`
+  })()
+
+  const currentChannel = currentChannelId !== null ? channels.find(c => c.id === currentChannelId) : null
+  const isMuted = !!muteEndTime
+  const inputDisabled = !isConnected || currentChannelId === null || isMuted
+
+  const inputPlaceholder = isMuted
+    ? muteEndTime === -1
+      ? 'muted indefinitely'
+      : `muted · ${Math.floor(muteTimeRemaining / 60)}:${(muteTimeRemaining % 60).toString().padStart(2, '0')} remaining`
+    : currentChannelId !== null
+    ? `message #${currentChannel?.name ?? currentChannelId}`
+    : 'join a channel to start chatting'
+
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
-        onSwitchToSignup={() => {
-          setIsLoginModalOpen(false)
-          setIsSignupModalOpen(true)
-        }}
+        onSwitchToSignup={() => { setIsLoginModalOpen(false); setIsSignupModalOpen(true) }}
       />
       <SignupModal
         isOpen={isSignupModalOpen}
         onClose={() => setIsSignupModalOpen(false)}
         onSignupSuccess={handleLoginSuccess}
-        onSwitchToLogin={() => {
-          setIsSignupModalOpen(false)
-          setIsLoginModalOpen(true)
-        }}
+        onSwitchToLogin={() => { setIsSignupModalOpen(false); setIsLoginModalOpen(true) }}
       />
 
+      {/* Join Channel Modal */}
       {isJoinModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Join Channel</h2>
-            <form onSubmit={handleJoinChannel}>
-              <div className="mb-4">
-                <label htmlFor="channelId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Channel ID
-                </label>
-                <input
-                  id="channelId"
-                  type="number"
-                  value={joinChannelId}
-                  onChange={(e) => setJoinChannelId(e.target.value)}
-                  placeholder="Enter channel ID (e.g., 1)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  autoFocus
-                  min="0"
-                />
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.75)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 50,
+        }}>
+          <div
+            className="modal-appear"
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border-bright)',
+              padding: '30px',
+              width: '100%',
+              maxWidth: '350px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ color: 'var(--accent)', fontSize: '15px' }}>›</span>
+                <span style={{ color: 'var(--text-2)', fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  join channel
+                </span>
               </div>
-              <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '19px', lineHeight: 1 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleJoinChannel}>
+              <div style={{ marginBottom: '30px' }}>
+                <div style={{ color: 'var(--text-3)', fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '5px' }}>
+                  channel id
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-bright)', paddingBottom: '4px' }}>
+                  <span style={{ color: 'var(--accent)', userSelect: 'none' }}>#</span>
+                  <input
+                    type="number"
+                    value={joinChannelId}
+                    onChange={(e) => setJoinChannelId(e.target.value)}
+                    style={{
+                      flex: 1, background: 'none', border: 'none', outline: 'none',
+                      color: 'var(--text-1)', fontSize: '19px', caretColor: 'var(--accent)',
+                    }}
+                    autoFocus
+                    min="0"
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsJoinModalOpen(false)
-                    setJoinChannelId('')
+                  onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
+                  style={{
+                    flex: 1, background: 'none', border: '1px solid var(--border-bright)',
+                    color: 'var(--text-2)', cursor: 'pointer', padding: '9px', fontSize: '16px',
                   }}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
                 >
-                  Cancel
+                  cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                  style={{
+                    flex: 1, background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+                    color: 'var(--accent)', cursor: 'pointer', padding: '9px', fontSize: '16px',
+                  }}
                 >
-                  Join
+                  join
                 </button>
               </div>
             </form>
@@ -574,94 +557,117 @@ function App() {
         onLeaveChannel={handleLeaveChannel}
       />
 
-      <div className="flex-1 flex flex-col">
-        <div className="bg-white border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {currentChannelId !== null
-                ? `# ${channels.find(c => c.id === currentChannelId)?.name || `Channel ${currentChannelId}`}`
-                : '# Select a channel'}
-            </h1>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">
-                {isAuthenticated ? (
-                  <>
-                    <span className="font-medium text-gray-800">{displayName}</span>
-                    {' '}
-                    <span className="text-green-600">(authenticated)</span>
-                  </>
-                ) : (
-                  <span className="text-gray-500">Guest mode</span>
-                )}
-              </span>
-              {isAuthenticated ? (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
+      {/* Main area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 20px',
+          height: 'var(--header-h)',
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--surface)',
+          flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--text-3)', userSelect: 'none' }}>#</span>
+            <span style={{ color: currentChannel ? 'var(--text-1)' : 'var(--text-3)', fontWeight: '500', fontSize: '18px' }}>
+              {currentChannel ? currentChannel.name : 'no channel selected'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+            {isAuthenticated ? (
+              <>
+                <span style={{ color: 'var(--text-2)', fontSize: '16px' }}>
+                  {displayName}
+                </span>
+                <Link
+                  to="/dashboard"
+                  style={{ color: 'var(--text-2)', fontSize: '15px', textDecoration: 'none', letterSpacing: '0.04em' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-1)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-2)')}
+                >
+                  dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: '15px', letterSpacing: '0.04em' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-1)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-2)')}
+                >
+                  logout
+                </button>
+              </>
+            ) : (
+              <>
+                <span style={{ color: 'var(--text-3)', fontSize: '15px' }}>guest</span>
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  style={{
+                    background: 'none', border: '1px solid var(--border-bright)',
+                    color: 'var(--text-2)', cursor: 'pointer', fontSize: '15px',
+                    padding: '2px 8px', letterSpacing: '0.04em',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-bright)')}
                 >
-                  Login
+                  login
                 </button>
-              )}
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${isConnected
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-                }`}>
-                {isConnected ? '● Connected' : '● Disconnected'}
-              </span>
-            </div>
+              </>
+            )}
+
+            <span style={{
+              color: isConnected ? 'var(--accent)' : 'var(--text-error)',
+              fontSize: '14px',
+              letterSpacing: '0.08em',
+              userSelect: 'none',
+            }}>
+              ● {isConnected ? 'syn' : 'err'}
+            </span>
           </div>
         </div>
 
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-amber-800">Demo Environment</h3>
-              <div className="mt-1 text-sm text-amber-700">
-                <ul className="list-disc list-inside space-y-1">
-                  <li>The server restarts at the start of every hour, clearing all chat messages and user accounts</li>
-                  <li>Account registration is open - create any username you like</li>
-                  <li>Join any channel by entering a number (1, 2, 3, etc.)</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        {/* Demo banner */}
+        <div style={{
+          padding: '6px 20px',
+          borderBottom: '1px solid rgba(255, 170, 68, 0.12)',
+          background: 'rgba(255, 170, 68, 0.03)',
+          flexShrink: 0,
+        }}>
+          <span style={{ color: 'var(--text-warn)', fontSize: '15px', opacity: 0.75 }}>
+            ─ demo: server resets hourly · open registration · join any channel by number
+          </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {currentChannelId === null ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <p className="text-lg mb-4">No channel selected</p>
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', height: '100%', gap: '15px',
+            }}>
+              <span style={{ color: 'var(--text-3)', fontSize: '16px' }}>
+                no channel selected
+              </span>
               <button
                 onClick={() => setIsJoinModalOpen(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                style={{
+                  background: 'var(--accent-dim)', border: '1px solid var(--border-bright)',
+                  color: 'var(--text-2)', cursor: 'pointer', padding: '8px 20px', fontSize: '16px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text-2)' }}
               >
-                Join a Channel
+                + join channel
               </button>
             </div>
           ) : filteredMessages.length === 0 ? (
-            <p className="text-gray-400 text-center mt-8">No messages in this channel yet...</p>
+            <div style={{ textAlign: 'center', color: 'var(--text-3)', paddingTop: '24px', fontSize: '16px' }}>
+              no messages in this channel
+            </div>
           ) : (
-            <div className="space-y-3 max-w-4xl mx-auto">
+            <>
               {filteredMessages.map((msg, index) => (
                 <MessageRenderer
                   key={msg.id || `${msg.timestamp}-${index}`}
@@ -670,39 +676,35 @@ function App() {
                 />
               ))}
               <div ref={messagesEndRef} />
-            </div>
+            </>
           )}
         </div>
 
-        {currentChannelId !== null && (() => {
-          const channelTyping = typingUsers.get(currentChannelId)
+        {/* Typing indicator */}
+        {typingText && (
+          <div style={{
+            padding: '4px 16px',
+            borderTop: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            flexShrink: 0,
+            height: '33px',
+          }}>
+            <span style={{ color: 'var(--text-3)', fontSize: '15px' }}>{typingText} typing</span>
+            <span className="blink" style={{ color: 'var(--accent)', fontSize: '15px', fontWeight: '600' }}>_</span>
+          </div>
+        )}
 
-          if (!channelTyping || channelTyping.size === 0) return null
-
-          const typingUsernames = Array.from(channelTyping.keys())
-          let typingText = ''
-
-          if (typingUsernames.length === 1) {
-            typingText = `${typingUsernames[0]} is typing...`
-          } else if (typingUsernames.length === 2) {
-            typingText = `${typingUsernames[0]} and ${typingUsernames[1]} are typing...`
-          } else if (typingUsernames.length === 3) {
-            typingText = `${typingUsernames[0]}, ${typingUsernames[1]}, and ${typingUsernames[2]} are typing...`
-          } else {
-            typingText = `${typingUsernames[0]}, ${typingUsernames[1]}, and ${typingUsernames.length - 2} others are typing...`
-          }
-
-          return (
-            <div className="bg-gray-50 px-6 py-2 border-t border-gray-200">
-              <div className="max-w-4xl mx-auto text-sm text-gray-500 italic">
-                {typingText}
-              </div>
-            </div>
-          )
-        })()}
-
-        <div className="bg-white border-t border-gray-200 p-4">
-          <form onSubmit={sendMessage} className="relative flex gap-2 max-w-4xl mx-auto">
+        {/* Input */}
+        <div style={{
+          padding: '10px 20px',
+          borderTop: '1px solid var(--border)',
+          background: 'var(--surface)',
+          flexShrink: 0,
+        }}>
+          <form
+            onSubmit={sendMessage}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}
+          >
             {showCommandAutocomplete && (
               <CommandAutocomplete
                 commands={filteredCommands}
@@ -711,37 +713,44 @@ function App() {
               />
             )}
 
-            <div className="flex-1 relative">
-              <input
-                ref={messageInputRef}
-                type="text"
-                value={message}
-                onChange={(e) => handleMessageChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  muteEndTime
-                    ? muteEndTime === -1
-                      ? 'You are muted indefinitely'
-                      : `You are muted - ${Math.floor(muteTimeRemaining / 60)}:${(muteTimeRemaining % 60).toString().padStart(2, '0')} remaining`
-                    : currentChannelId !== null
-                    ? `Message #${channels.find(c => c.id === currentChannelId)?.name || `Channel ${currentChannelId}`}`
-                    : 'Join a channel to send messages'
-                }
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
-                  muteEndTime
-                    ? 'border-orange-400 bg-orange-50 text-gray-400 cursor-not-allowed focus:ring-orange-400'
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                disabled={!isConnected || currentChannelId === null || !!muteEndTime}
-                autoComplete="off"
-              />
-            </div>
+            <span style={{ color: 'var(--accent)', userSelect: 'none', fontSize: '19px', lineHeight: 1, flexShrink: 0 }}>
+              ›
+            </span>
+            <input
+              ref={messageInputRef}
+              type="text"
+              value={message}
+              onChange={(e) => handleMessageChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={inputPlaceholder}
+              disabled={inputDisabled}
+              style={{
+                flex: 1,
+                background: 'none',
+                border: 'none',
+                outline: 'none',
+                color: 'var(--text-1)',
+                fontSize: '18px',
+                caretColor: 'var(--accent)',
+                opacity: inputDisabled ? 0.35 : 1,
+              }}
+              autoComplete="off"
+            />
             <button
               type="submit"
-              disabled={!isConnected || !message.trim() || currentChannelId === null || !!muteEndTime}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              disabled={!isConnected || !message.trim() || currentChannelId === null || isMuted}
+              style={{
+                background: 'none',
+                border: '1px solid var(--border-bright)',
+                color: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'var(--text-3)' : 'var(--text-2)',
+                cursor: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'not-allowed' : 'pointer',
+                padding: '4px 13px',
+                fontSize: '15px',
+                letterSpacing: '0.05em',
+                flexShrink: 0,
+              }}
             >
-              Send
+              send
             </button>
           </form>
         </div>

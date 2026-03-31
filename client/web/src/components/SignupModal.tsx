@@ -15,11 +15,32 @@ interface PasswordRequirement {
 }
 
 const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
-  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
-  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
-  { label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
-  { label: 'One digit', test: (p) => /\d/.test(p) },
+  { label: '8+ characters', test: (p) => p.length >= 8 },
+  { label: 'uppercase', test: (p) => /[A-Z]/.test(p) },
+  { label: 'lowercase', test: (p) => /[a-z]/.test(p) },
+  { label: 'digit', test: (p) => /\d/.test(p) },
 ]
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  borderBottom: '1px solid var(--border-bright)',
+  outline: 'none',
+  color: 'var(--text-1)',
+  fontSize: '18px',
+  padding: '5px 0',
+  caretColor: 'var(--accent)',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  color: 'var(--text-3)',
+  fontSize: '14px',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  marginBottom: '5px',
+}
 
 export function SignupModal({ isOpen, onClose, onSignupSuccess, onSwitchToLogin }: SignupModalProps) {
   const [username, setUsername] = useState('')
@@ -28,60 +49,32 @@ export function SignupModal({ isOpen, onClose, onSignupSuccess, onSwitchToLogin 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const passwordValidation = useMemo(() => {
-    return PASSWORD_REQUIREMENTS.map((req) => ({
-      ...req,
-      passed: req.test(password),
-    }))
-  }, [password])
+  const validation = useMemo(() =>
+    PASSWORD_REQUIREMENTS.map(r => ({ ...r, passed: r.test(password) })),
+    [password]
+  )
 
-  const isPasswordValid = passwordValidation.every((req) => req.passed)
+  const isPasswordValid = validation.every(r => r.passed)
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0
   const isUsernameValid = username.length >= 3 && username.length <= 30
   const canSubmit = isUsernameValid && isPasswordValid && passwordsMatch && !isLoading
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!canSubmit) return
     setError(null)
-
-    if (!canSubmit) {
-      return
-    }
-
     setIsLoading(true)
-
     try {
-      // First, create the account
       await authService.signup({ username, password })
-
-      // Then, log in to get the token
-      const loginResponse = await authService.login({ username, password })
-
-      // Store token securely
-      tokenStorage.setToken(loginResponse.access_token, loginResponse.expires_in)
-
-      // Call success callback with username
+      const response = await authService.login({ username, password })
+      tokenStorage.setToken(response.access_token, response.expires_in)
       onSignupSuccess(username)
-
-      // Close modal
       onClose()
-
-      // Reset form
       setUsername('')
       setPassword('')
       setConfirmPassword('')
     } catch (err) {
-      if (err instanceof AuthError) {
-        // Format validation errors from backend
-        if (err.detail) {
-          setError(err.detail)
-        } else {
-          setError(err.message)
-        }
-      } else {
-        setError('An unexpected error occurred')
-      }
-      // Clear passwords on error for security
+      setError(err instanceof AuthError ? (err.detail || err.message) : 'unexpected error')
       setPassword('')
       setConfirmPassword('')
     } finally {
@@ -92,37 +85,63 @@ export function SignupModal({ isOpen, onClose, onSignupSuccess, onSwitchToLogin 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50,
+    }}>
+      <div
+        className="modal-appear"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border-bright)',
+          padding: '30px',
+          width: '100%',
+          maxWidth: '400px',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: 'var(--accent)', fontSize: '15px' }}>›</span>
+            <span style={{ color: 'var(--text-2)', fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              create account
+            </span>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-            aria-label="Close"
+            style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '19px', lineHeight: 1 }}
           >
-            ×
+            ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded text-sm">
-              {error}
-            </div>
-          )}
+        {error && (
+          <div style={{
+            color: 'var(--text-error)',
+            fontSize: '15px',
+            padding: '8px 10px',
+            background: 'rgba(255, 68, 102, 0.08)',
+            border: '1px solid rgba(255, 68, 102, 0.2)',
+            marginBottom: '20px',
+          }}>
+            {error}
+          </div>
+        )}
 
-          <div>
-            <label htmlFor="signup-username" className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '18px' }}>
+            <label style={labelStyle}>username</label>
             <input
               type="text"
-              id="signup-username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Choose a username (3-30 characters)"
+              style={{
+                ...inputStyle,
+                borderBottomColor: username.length > 0 && !isUsernameValid ? 'var(--text-error)' : 'var(--border-bright)',
+              }}
+              placeholder="3–30 characters"
               required
               minLength={3}
               maxLength={30}
@@ -130,97 +149,102 @@ export function SignupModal({ isOpen, onClose, onSignupSuccess, onSwitchToLogin 
               autoFocus
               autoComplete="username"
             />
-            {username.length > 0 && username.length < 3 && (
-              <p className="mt-1 text-sm text-red-600">Username must be at least 3 characters</p>
-            )}
           </div>
 
-          <div>
-            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div style={{ marginBottom: '18px' }}>
+            <label style={labelStyle}>password</label>
             <input
               type="password"
-              id="signup-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Create a strong password"
+              style={inputStyle}
+              placeholder="••••••••"
               required
               disabled={isLoading}
               autoComplete="new-password"
             />
             {password.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {passwordValidation.map((req, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center text-sm ${
-                      req.passed ? 'text-green-600' : 'text-gray-500'
-                    }`}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '8px' }}>
+                {validation.map((req, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      fontSize: '14px',
+                      color: req.passed ? 'var(--accent)' : 'var(--text-3)',
+                      border: `1px solid ${req.passed ? 'var(--accent)' : 'var(--border-bright)'}`,
+                      padding: '3px 8px',
+                      transition: 'all 0.15s',
+                    }}
                   >
-                    <span className="mr-2">{req.passed ? '✓' : '○'}</span>
-                    {req.label}
-                  </div>
+                    {req.passed ? '✓ ' : ''}{req.label}
+                  </span>
                 ))}
               </div>
             )}
           </div>
 
-          <div>
-            <label htmlFor="signup-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
+          <div style={{ marginBottom: '30px' }}>
+            <label style={labelStyle}>confirm password</label>
             <input
               type="password"
-              id="signup-confirm-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                confirmPassword.length > 0 && !passwordsMatch
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-gray-300'
-              }`}
-              placeholder="Confirm your password"
+              style={{
+                ...inputStyle,
+                borderBottomColor: confirmPassword.length > 0 && !passwordsMatch ? 'var(--text-error)' : 'var(--border-bright)',
+              }}
+              placeholder="••••••••"
               required
               disabled={isLoading}
               autoComplete="new-password"
             />
-            {confirmPassword.length > 0 && !passwordsMatch && (
-              <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
-            )}
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading ? 'Creating account...' : 'Sign Up'}
-            </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              style={{
+                flex: 1,
+                background: 'none',
+                border: '1px solid var(--border-bright)',
+                color: 'var(--text-2)',
+                cursor: 'pointer',
+                padding: '9px',
+                fontSize: '16px',
+              }}
             >
-              Cancel
+              cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              style={{
+                flex: 1,
+                background: canSubmit ? 'var(--accent-dim)' : 'transparent',
+                border: `1px solid ${canSubmit ? 'var(--accent)' : 'var(--border-bright)'}`,
+                color: canSubmit ? 'var(--accent)' : 'var(--text-3)',
+                cursor: canSubmit ? 'pointer' : 'not-allowed',
+                padding: '9px',
+                fontSize: '16px',
+                transition: 'all 0.15s',
+              }}
+            >
+              {isLoading ? '...' : 'sign up'}
             </button>
           </div>
         </form>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <p>
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="text-blue-500 hover:text-blue-600 font-medium"
-            >
-              Log in
-            </button>
-          </p>
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <span style={{ color: 'var(--text-3)', fontSize: '15px' }}>have an account? </span>
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '15px' }}
+          >
+            log in
+          </button>
         </div>
       </div>
     </div>

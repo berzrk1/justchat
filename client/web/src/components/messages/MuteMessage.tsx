@@ -1,62 +1,58 @@
-import type { ChatMuteMessageServerToClient } from '../../types/messages';
+import type { ChatMuteMessageServerToClient } from '../../types/messages'
 
 interface MuteMessageProps {
-  message: ChatMuteMessageServerToClient;
-  currentUsername?: string;
+  message: ChatMuteMessageServerToClient
+  currentUsername?: string
+}
+
+function formatTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+function formatDuration(seconds?: number): string {
+  if (!seconds) return 'indefinitely'
+  if (seconds < 60) return `${seconds}s`
+  const m = Math.floor(seconds / 60)
+  if (m < 60) return `${m}m`
+  return `${Math.floor(m / 60)}h`
 }
 
 export function MuteMessage({ message, currentUsername }: MuteMessageProps) {
-  const { payload, timestamp } = message;
-  const target = payload.target;
-  const duration = payload.duration;
-  const reason = payload.reason;
-
-  const isCurrentUser = currentUsername === target;
-
-  // Format duration for display
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return 'indefinitely';
-    if (seconds < 60) return `${seconds} seconds`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-    const hours = Math.floor(minutes / 60);
-    return `${hours} hour${hours > 1 ? 's' : ''}`;
-  };
+  const { payload, timestamp } = message
+  const { target, duration, reason } = payload
+  const isOwn = currentUsername === target
 
   return (
-    <div className="flex justify-center my-3">
-      <div
-        className={`px-4 py-2 rounded-lg text-sm ${
-          isCurrentUser
-            ? 'bg-orange-600 text-white font-medium'
-            : 'bg-yellow-100 text-yellow-800'
-        }`}
-      >
-        {isCurrentUser ? (
-          <>
-            <span className="font-bold">🔇 You have been muted {duration ? `for ${formatDuration(duration)}` : 'indefinitely'}</span>
-            {reason && (
-              <span className="block mt-1 text-xs opacity-90">
-                Reason: {reason}
-              </span>
-            )}
-          </>
+    <div className="msg-appear" style={{
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '6px 20px',
+    }}>
+      <div style={{
+        background: isOwn ? 'rgba(251, 191, 36, 0.08)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${isOwn ? 'rgba(251, 191, 36, 0.25)' : 'var(--border-bright)'}`,
+        padding: '4px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: '13px',
+      }}>
+        <span style={{ color: 'var(--text-warn)', fontSize: '13px' }}>⊘</span>
+        {isOwn ? (
+          <span style={{ color: 'var(--text-warn)' }}>
+            you were muted {formatDuration(duration)}
+            {reason && <span style={{ color: 'rgba(251,191,36,0.5)' }}> — {reason}</span>}
+          </span>
         ) : (
-          <>
-            <span className="font-semibold">{target}</span>
-            {' has been muted '}
-            {duration ? `for ${formatDuration(duration)}` : 'indefinitely'}
-            {reason && (
-              <span className="block mt-1 text-xs opacity-75">
-                Reason: {reason}
-              </span>
-            )}
-          </>
+          <span style={{ color: 'var(--text-2)' }}>
+            <span style={{ color: 'var(--text-1)' }}>{target}</span>
+            {' muted '}
+            {formatDuration(duration)}
+            {reason && <span style={{ color: 'var(--text-3)' }}> — {reason}</span>}
+          </span>
         )}
-        <span className={`text-xs ml-2 ${isCurrentUser ? 'opacity-75' : 'opacity-50'}`}>
-          {new Date(timestamp).toLocaleTimeString()}
-        </span>
+        <span style={{ color: 'var(--text-3)', fontSize: '12px' }}>{formatTime(timestamp)}</span>
       </div>
     </div>
-  );
+  )
 }
