@@ -92,7 +92,6 @@ app.state.dashboard_service = dashboard_service
 manager = ConnectionManager(
     connection_registry,
     auth_service,
-    message_broker,
     channel_service,
 )
 

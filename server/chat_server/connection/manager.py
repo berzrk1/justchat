@@ -13,8 +13,6 @@ from chat_server.services.authorization_service import (
     AuthenticationService,
 )
 from chat_server.services.channel_service import ChannelService
-from chat_server.services.message_broker import MessageBroker
-from chat_server.services.mute_service import MuteService
 
 SERVER_ONLY_MESSAGES = {
     MessageType.CHANNEL_JOIN,
@@ -30,12 +28,10 @@ class ConnectionManager:
         self,
         connection_registry: ConnectionRegistry,
         auth_service: AuthenticationService,
-        message_broker: MessageBroker,
         channel_service: ChannelService,
     ) -> None:
         self.connections = connection_registry
         self.auth = auth_service
-        self.broker = message_broker
         self.channel_srvc = channel_service
 
     async def accept_connection(self, websocket: WebSocket) -> None:
@@ -68,7 +64,9 @@ class ConnectionManager:
         payload = messages.HelloPayload(user=messages.UserFrom.model_validate(user))
         msg = messages.Hello(payload=payload)
 
-        await self.broker.send_to_websocket(websocket, msg)
+        # TODO: ConnectionManager should not interact with the broker directly,
+        # at least not in this way
+        await self.channel_srvc._broker.send_to_websocket(websocket, msg)
 
         ctx = ConnectionContext(websocket=websocket, user=user)
         self.connections.add(ctx)
