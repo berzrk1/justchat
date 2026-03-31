@@ -42,6 +42,27 @@ class ChannelService:
     def create_channel(self, channel: Channel) -> Channel:
         return self._chrepo.add(channel)
 
+    async def chat_send(self, user: User, channel: Channel, content: str):
+        """Send a message to a channel"""
+        payload = ChatSendPayload(
+            channel_id=channel.id,
+            sender=UserFrom.model_validate(user),
+            content=content,
+        )
+        response = ChatSend(timestamp=datetime.now(), id=uuid.uuid4(), payload=payload)
+
+        async with messages_repo_factory() as msg_repo:
+            await msg_repo.create(
+                id=response.id,  # type: ignore
+                channel_id=channel.id,
+                sender_id=user.id,
+                sender_username=user.username,
+                content=content,
+                timestamp=response.timestamp,  # type: ignore
+            )
+
+        await self.send_to_channel(channel, response)
+
     async def join_channel(self, user: User, channel: Channel) -> None:
         """
         Join a User to a channel, creates the channel if it doesn't exist
@@ -140,7 +161,7 @@ class ChannelService:
 
     async def send_to_channel(self, channel: Channel, message: BaseMessage) -> None:
         """
-        Send a message to all members of a Channel.
+        Send a message to all members in a Channel.
         """
 
         members = self._membershipsrvc.get_channel_members(channel)

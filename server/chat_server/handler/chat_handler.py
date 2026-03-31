@@ -4,26 +4,22 @@ from datetime import datetime
 
 from chat_server.connection.channel import Channel
 from chat_server.connection.context import ConnectionContext
-from chat_server.infrastructure.manager import ConnectionManager
-from chat_server.database import crud
-from chat_server.database.core import async_session
 from chat_server.handler.decorators import (
     require_channel,
     require_membership,
     require_not_muted,
     validate_message,
 )
+from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.enums import MessageType
 from chat_server.protocol.messages import (
     ChatSend,
-    ChatSendPayload,
     ReactAdd,
     ReactPayload,
     ReactRemove,
     TypingStart,
     TypingStartPayload,
-    UserFrom,
 )
 
 
@@ -43,25 +39,7 @@ async def handler_chat_send(
     Handle an incoming message of the type ChatSend
     """
     try:
-        response_payload = ChatSendPayload(
-            channel_id=channel.id,
-            sender=UserFrom.model_validate(ctx.user),
-            content=msg_in.payload.content,
-        )
-
-        server_response = ChatSend(
-            timestamp=datetime.now(), id=uuid.uuid4(), payload=response_payload
-        )
-
-        logging.info(
-            f"Server sending <{server_response.model_dump_json()}> to {repr(ctx.user)}"
-        )
-
-        # Save message to database
-        async with async_session() as session:
-            await crud.create_message(session, server_response)
-
-        await manager.channel_srvc.send_to_channel(channel, server_response)
+        await manager.channel_srvc.chat_send(ctx.user, channel, msg_in.payload.content)
         logging.info(f"Message sent to channel {repr(channel)} by {repr(ctx.user)}")
     except Exception as e:
         logging.error(f"Error handling CHAT_SEND: {e}")
