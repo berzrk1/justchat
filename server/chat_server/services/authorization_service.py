@@ -2,7 +2,7 @@ import logging
 import jwt
 from chat_server.connection.user import User
 from chat_server.database import crud
-from chat_server.database.db import async_session
+from chat_server.database.core import async_session
 from chat_server.security.utils import ALGORITHM
 from chat_server.settings import settings
 
