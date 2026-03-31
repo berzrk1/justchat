@@ -16,7 +16,7 @@ from chat_server.protocol.messages import (
     UserFrom,
 )
 from chat_server.services.membership_service import MembershipService
-from chat_server.services.message_broker import MessageBroker
+from chat_server.infrastructure.message_broker import MessageBroker
 
 
 class ChannelService:

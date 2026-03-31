@@ -1,7 +1,7 @@
 import logging
 
 from chat_server.connection.context import ConnectionContext
-from chat_server.connection.manager import ConnectionManager
+from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.handler import channel_handler, chat_handler, commands_handler
 from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.enums import MessageType

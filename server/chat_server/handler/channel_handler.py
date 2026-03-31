@@ -2,7 +2,7 @@ import logging
 
 from chat_server.connection.channel import Channel
 from chat_server.connection.context import ConnectionContext
-from chat_server.connection.manager import ConnectionManager
+from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.database import crud
 from chat_server.database.core import async_session
 from chat_server.handler.decorators import (
