@@ -4,7 +4,7 @@ import logging
 import uuid
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
-from chat_server.infrastructure.channel_manager import ChannelManager
+from chat_server.database.repositories.channel import ChannelRepository
 from chat_server.protocol.messages import (
     BaseMessage,
     ChannelJoin,
@@ -28,16 +28,16 @@ class ChannelService:
 
     def __init__(
         self,
-        channel_manager: ChannelManager,
+        channel_repository: ChannelRepository,
         membership_srvc: MembershipService,
         message_broker: MessageBroker,
     ) -> None:
-        self._channelmanager = channel_manager
+        self._chrepo = channel_repository
         self._membershipsrvc = membership_srvc
         self._broker = message_broker
 
     def create_channel(self, channel: Channel) -> Channel:
-        return self._channelmanager.add(channel)
+        return self._chrepo.add(channel)
 
     async def join_channel(self, user: User, channel: Channel) -> None:
         """
@@ -45,7 +45,9 @@ class ChannelService:
         """
         self._membershipsrvc.join(user, channel)
         members = self._membershipsrvc.get_channel_members(channel)
-        await self.send_to_channel(channel, self._build_members_message(channel, members))
+        await self.send_to_channel(
+            channel, self._build_members_message(channel, members)
+        )
         await self._alert_user_join(user, channel)
 
     async def leave_channel(self, user: User, channel: Channel) -> None:
@@ -55,7 +57,9 @@ class ChannelService:
         """
         self._membershipsrvc.leave(user, channel)
         members = self._membershipsrvc.get_channel_members(channel)
-        await self._broker.send_to_channel(members, self._build_members_message(channel, members))
+        await self._broker.send_to_channel(
+            members, self._build_members_message(channel, members)
+        )
         await self._alert_user_left(user, channel)
 
     async def leave_all_channels(self, user: User) -> None:
@@ -63,7 +67,9 @@ class ChannelService:
         Remove a User from all of its joined Channels.
         """
         channels = self._membershipsrvc.leave_all(user)
-        await asyncio.gather(*(self.leave_channel(user, channel) for channel in channels))
+        await asyncio.gather(
+            *(self.leave_channel(user, channel) for channel in channels)
+        )
 
     def get_channel_members(self, channel: Channel) -> set[User]:
         """
@@ -75,7 +81,7 @@ class ChannelService:
         """
         Get a Channel by its ID.
         """
-        return self._channelmanager.get(channel_id)
+        return self._chrepo.get(channel_id)
 
     def get_channels_in_use(self) -> list[Channel]:
         """
@@ -101,7 +107,9 @@ class ChannelService:
         """
         return self._membershipsrvc.is_member(user, channel)
 
-    def _build_members_message(self, channel: Channel, members: set[User]) -> ChannelMembers:
+    def _build_members_message(
+        self, channel: Channel, members: set[User]
+    ) -> ChannelMembers:
         payload = ChannelMembersPayload(
             channel_id=channel.id,
             members=[UserFrom.model_validate(u) for u in members],

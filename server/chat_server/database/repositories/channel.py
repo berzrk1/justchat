@@ -2,7 +2,7 @@ import logging
 from chat_server.connection.channel import Channel
 
 
-class ChannelManager:
+class ChannelRepository:
     """
     Repository for Channel entities.
 

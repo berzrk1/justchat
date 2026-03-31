@@ -7,14 +7,13 @@ from chat_server.api import auth
 from chat_server.api.dashboard.routes import dashboard_router
 from chat_server.connection.manager import ConnectionManager
 from chat_server.database.core import init_db
-from chat_server.infrastructure.channel_manager import ChannelManager
+from chat_server.database.repositories.channel import ChannelRepository
 from chat_server.infrastructure.connection_registry import ConnectionRegistry
 from chat_server.services.authorization_service import AuthenticationService
 from chat_server.services.channel_service import ChannelService
 from chat_server.services.dashboard_service import DashboardService
 from chat_server.services.membership_service import MembershipService
 from chat_server.services.message_broker import MessageBroker
-from chat_server.services.mute_service import MuteService
 from chat_server.settings import settings
 
 import logging
@@ -80,11 +79,11 @@ if settings.is_development:
 
 
 connection_registry = ConnectionRegistry()
-channel_manager = ChannelManager()
+channel_repository = ChannelRepository()
 auth_service = AuthenticationService()
 membership_service = MembershipService()
 message_broker = MessageBroker(connection_registry)
-channel_service = ChannelService(channel_manager, membership_service, message_broker)
+channel_service = ChannelService(channel_repository, membership_service, message_broker)
 dashboard_service = DashboardService(channel_service)
 
 # Store dashboard_serivce in app.state for access in endpoints
