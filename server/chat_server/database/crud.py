@@ -230,14 +230,3 @@ async def create_message(
         await session.rollback()
         logging.error(f"Failed to create message in database: {e}")
         raise e
-
-
-async def get_channel_messages(
-    session: AsyncSession, channel_id: int
-) -> list[MessageTable] | None:
-    """
-    Retrive all messages stored from a channel.
-    """
-    stmt = select(MessageTable).where(MessageTable.channel_id == channel_id)
-    res = await session.execute(stmt)
-    return list(res.scalars().all())
