@@ -5,7 +5,7 @@ from fastapi.routing import APIRouter
 
 from chat_server.api.deps import get_current_user
 from chat_server.database import crud
-from chat_server.deps import DBSession
+from chat_server.database.core import DBSession
 from chat_server.exceptions import UsernameAlreadyExists, UserNotFound
 from chat_server.schemas.message import MessagesPublic
 from chat_server.schemas.user import (

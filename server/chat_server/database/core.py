@@ -1,4 +1,5 @@
-from typing import AsyncGenerator
+from fastapi import Depends
+from typing import AsyncGenerator, Annotated
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.sql import insert, select
 from chat_server.database.models import Base, UserTable
@@ -21,6 +22,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     async with async_session() as session:
         yield session
+
+
+DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def init_db() -> None:

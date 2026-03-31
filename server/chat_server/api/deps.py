@@ -7,7 +7,7 @@ import jwt
 from chat_server.schemas.jwt import TokenContent
 from chat_server.database import crud
 from chat_server.database.models import UserTable
-from chat_server.deps import DBSession
+from chat_server.database.core import DBSession
 from chat_server.security.utils import ALGORITHM
 from chat_server.services.dashboard_service import DashboardService
 from chat_server.settings import settings
