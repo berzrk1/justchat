@@ -12,7 +12,7 @@ class MuteRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def create(
+    async def mute(
         self,
         target_id: int,
         by_id: int,
@@ -37,7 +37,7 @@ class MuteRepository:
             logging.error(f"Failed to mute user: {e}")
             raise
 
-    async def get(self, target_id: int, channel_id: int) -> MuteTable | None:
+    async def is_muted(self, target_id: int, channel_id: int) -> MuteTable | None:
         stmt = select(MuteTable).where(
             MuteTable.target_id == target_id,
             MuteTable.channel_id == channel_id,
@@ -46,8 +46,8 @@ class MuteRepository:
         res = await self._session.execute(stmt)
         return res.scalar_one_or_none()
 
-    async def delete(self, target_id: int, channel_id: int) -> None:
-        mute_db = await self.get(target_id, channel_id)
+    async def unmute(self, target_id: int, channel_id: int) -> None:
+        mute_db = await self.is_muted(target_id, channel_id)
         if mute_db:
             try:
                 await self._session.delete(mute_db)
