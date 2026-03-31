@@ -33,7 +33,9 @@ class MessageRepository:
             self._session.add(message_db)
             await self._session.commit()
             await self._session.refresh(message_db)
-            logging.debug(f"Created message in database successfully: {repr(message_db)}")
+            logging.debug(
+                f"Created message in database successfully: {repr(message_db)}"
+            )
             return message_db
         except Exception as e:
             await self._session.rollback()
@@ -50,8 +52,20 @@ class MessageRepository:
             .limit(limit)
         )
         if before_id is not None:
-            subq = select(MessageTable.timestamp).where(MessageTable.id == before_id).scalar_subquery()
+            subq = (
+                select(MessageTable.timestamp)
+                .where(MessageTable.id == before_id)
+                .scalar_subquery()
+            )
             stmt = stmt.where(MessageTable.timestamp < subq)
 
         res = await self._session.scalars(stmt)
         return list(res.all())
+
+    async def get_channel_messages(self, channel_id: int) -> list[MessageTable] | None:
+        """
+        Retrive all messages stored from a channel.
+        """
+        stmt = select(MessageTable).where(MessageTable.channel_id == channel_id)
+        res = await self._session.execute(stmt)
+        return list(res.scalars().all())

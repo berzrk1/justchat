@@ -1,3 +1,4 @@
+from chat_server.database.factories import messages_repo_factory
 import asyncio
 from datetime import datetime
 import logging
@@ -14,6 +15,8 @@ from chat_server.protocol.messages import (
     ChannelMembers,
     ChannelMembersPayload,
     UserFrom,
+    ChatSendPayload,
+    ChatSend,
 )
 from chat_server.database.repositories.membership import MembershipRepository
 from chat_server.infrastructure.message_broker import MessageBroker
@@ -41,9 +44,28 @@ class ChannelService:
 
     async def join_channel(self, user: User, channel: Channel) -> None:
         """
-        Join a User to a Channel and send an alert to the Channel.
+        Join a User to a channel, creates the channel if it doesn't exist
+        Send the messages history to the connecting user
+        and send an alert to the existing users.
         """
-        self._membershipsrvc.join(user, channel)
+        ch = self.create_channel(channel)
+        self._membershipsrvc.join(user, ch)
+
+        async with messages_repo_factory() as msg_repo:
+            history_messages = await msg_repo.get_channel_messages(ch.id)
+
+        if history_messages:
+            for history_msg in history_messages:
+                payload = ChatSendPayload(
+                    channel_id=history_msg.channel_id,
+                    sender=UserFrom(username=history_msg.sender_username),
+                    content=history_msg.content,
+                )
+                history_send = ChatSend(
+                    timestamp=history_msg.timestamp, id=history_msg.id, payload=payload
+                )
+                await self._broker.send_to_user(user, history_send)
+
         members = self._membershipsrvc.get_channel_members(channel)
         await self.send_to_channel(
             channel, self._build_members_message(channel, members)
