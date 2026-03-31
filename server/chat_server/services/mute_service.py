@@ -1,16 +1,14 @@
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
-from chat_server.database.repositories.moderation import ModerationRepository
+from chat_server.database.repositories.mute import MuteRepository
 
 
-class ModerationService:
+class MuteService:
     """
-    Moderate users.
-
-    Manage kick, bans, mutes, ...
+    Service to manage mutes of users.
     """
 
-    def __init__(self, mod_repo: ModerationRepository) -> None:
+    def __init__(self, mod_repo: MuteRepository) -> None:
         self._repo = mod_repo
 
     async def mute_user(

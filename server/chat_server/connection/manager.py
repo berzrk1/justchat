@@ -14,7 +14,7 @@ from chat_server.services.authorization_service import (
 )
 from chat_server.services.channel_service import ChannelService
 from chat_server.services.message_broker import MessageBroker
-from chat_server.services.moderation_service import ModerationService
+from chat_server.services.mute_service import MuteService
 
 SERVER_ONLY_MESSAGES = {
     MessageType.CHANNEL_JOIN,

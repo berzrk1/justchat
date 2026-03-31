@@ -14,7 +14,7 @@ from chat_server.services.channel_service import ChannelService
 from chat_server.services.dashboard_service import DashboardService
 from chat_server.services.membership_service import MembershipService
 from chat_server.services.message_broker import MessageBroker
-from chat_server.services.moderation_service import ModerationService
+from chat_server.services.mute_service import MuteService
 from chat_server.settings import settings
 
 import logging

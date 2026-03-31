@@ -1,4 +1,4 @@
-from chat_server.database.factories import moderation_srvc_factory
+from chat_server.database.factories import mute_srvc_factory
 import logging
 from datetime import datetime
 from uuid import uuid4
@@ -75,7 +75,7 @@ async def handler_mute(
         )
 
         if target:
-            async with moderation_srvc_factory() as srvc:
+            async with mute_srvc_factory() as srvc:
                 await srvc.mute_user(
                     target=target,
                     issuer=ctx.user,
@@ -124,7 +124,7 @@ async def handler_unmute(
         )
 
         if target:
-            async with moderation_srvc_factory() as srvc:
+            async with mute_srvc_factory() as srvc:
                 await srvc.unmute_user(target, channel)
                 logging.info(f"{repr(ctx.user)} is unmuting {target}.")
 

@@ -1,4 +1,4 @@
-from chat_server.database.factories import moderation_srvc_factory
+from chat_server.database.factories import mute_srvc_factory
 import logging
 from functools import wraps
 from typing import Type
@@ -101,7 +101,7 @@ def require_not_muted(handler):
 
     @wraps(handler)
     async def wrapper(ctx, message, manager, *, msg_in, channel, **kwargs):
-        async with moderation_srvc_factory() as srvc:
+        async with mute_srvc_factory() as srvc:
             if await srvc.is_muted(ctx.user, channel):
                 await manager.send_error(
                     ctx.websocket, "You are muted in this channel."
