@@ -68,34 +68,36 @@ The chat communication is done entirely in WebSockets.
 
 ### Creating new protocols
 
-I focused in making easy and modular when implementing new protocols.
+Easily creating new protocols was a top priority in the design
 
 All you need is:
 
-1. Create a `MessageType` enum in `server/protocol/enums.py`  that will be used
+1. Create a new `MessageType` Enum in `server/protocol/enums.py` that will be used
 to identify this protocol.
 2. Create the **Payload Body** in `server/protocol/messages.py` that will
 contain all the data that is needed for this protocol to work. What is
 sent/received by both the client and server.
 3. Create a `handler` for your protocol inside `server/handler/` that will contain
-your **implementation** of the protocol.
+your **implementation** of the protocol or will call a service that will handle
+the implementation.
 4. And **register** this `handler` to a `MessageType` inside `server/handler/routes.py`
 
 After this, all incoming WebSockets messages of `MessageType` will be routed to
-the new `handler`
+the new `handler`.
 
 #### Dependency Injections
 
-I also have some decorators (`server/handler/decorators.py`) that is commonly
-used in the protocols, e.g., check if the user is currently in the channel,
-if the user has permission, ...
+I have implemented decorators (`server/handler/decorators.py`) to act as
+middleware for common message restrictions, e.g. checking if the user is
+currently in the channel or if the user is muted.
 
-- `@validate_message(MessageType)`: Validate if the message received from the
-client is properly formatted.
-- `@require_channel`: Check if the channel the client is requesting exists.
-- `@require_membership`: Check if the user is currently in the channel.
-- `@require_permission(permission)`: Check if the user has the `permission`.
-- `@require_not_muted`: Check if the user is not muted.
+This allows for validation to occur even before the protocol
+implementation executes.
+
+- `@require_channel`: Ensure the requested channel exists.
+- `@require_membership`: Ensure user is a member of the channel.
+- `@require_permission(permission)`: Ensure user has the required `permission`.
+- `@require_not_muted`: Ensure user is not muted.
 
 ### Protocols Format
 
@@ -104,12 +106,12 @@ Every message protocol (`protocol/messages.py`) is a child of the `BaseMessage`
 
 Every message contains a `payload` that will hold the data needed for certain
 messages, e.g. a `CHAT_SEND` message will handle every message sent by
-a user expects the sender's `username`, the `channel_id` and the `content`
+a user. It expects the sender's `username`, the `channel_id` and the `content`
 of the message, while a `CHANNEL_JOIN` expects the `channel_id` and
 an User (that is filled by the server).
 
 That means both messages are `BaseMessage`, however their `payload` will be
-their difference.
+their differences.
 
 #### Validation of the Message Protocol
 
@@ -138,24 +140,23 @@ flowchart TD
 connection and then process every data received.
   - Ensure the first message ("hello") by the user is correct.
   - Check if its an authenticated user or creates a guest user.
-  - Validate all the subsequent messages and then send then to a router
-  that will handle the message.
+  - Validate all subsequent messages and send then to a router
+  that will process the message.
   - Handle the disconnect by the user (closed the tab)
 
 ### Services
 
 - The `ConnectionManager` depends on some services objects that handle
 certain features.
-  - `AuthenticationService` is what will authenticate an user account or
-  create a guest user.
-  - `ChannelService`: contains the API needed to interact with a channel. You
+- `AuthenticationService` authenticates registered users or create guests.
+- `ChannelService`: contains the API needed to interact with a channel. You
   can "join" an User to a channel, check if a User is in a channel, ...
-    - `MembershipService` "*low-level*" API to manage the relationship between a
-    user/client and the channel connected.
-  - `MessageBroker`: is the service to send messages to different targets like
-  user, a channel, or, if needed, a WebSocket.
-  - `ModerationService` manages the chat commands related to moderation
-  (`mute`, `ban`)
+- `MuteService` manages user mutes.
+
+- `MembershipService` "*low-level*" API to manage the relationship between a
+user/client and the channel connected.
+- `MessageBroker`: is the service to send messages to different targets like
+user, a channel, or, if needed, a WebSocket.
 
 ## Local Development
 
@@ -171,15 +172,15 @@ Go to the project directory
 cd justchat/
 ```
 
-Deploying the **backend**:
+Deploying **backend**:
 
 ```bash
 cd server/
 cp .env.example .env # Make any needed modification, but the default works
-docker compose build && docker compose up -d
+docker compose up --watch --build 
 ```
 
-Local dev for the **frontend**:
+Deploying **frontend**:
 
 ```bash
 cd client/web
