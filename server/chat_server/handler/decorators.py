@@ -51,17 +51,22 @@ def require_channel(handler):
 
 def require_membership(handler):
     """
-    Check if the user is in the channel
+    Check if the user is in the channel.
+    Validates if the channel exists.
     """
 
     @wraps(handler)
-    async def wrapper(ctx, message, manager, *, msg_in, channel, **kwargs):
-        if not manager.channel_srvc.is_member(ctx.user, channel):
-            await manager.send_error(ctx.websocket, "You must join this channel first")
+    async def wrapper(
+        ctx: ConnectionContext, message: BaseMessage, manager: ConnectionManager
+    ):
+        channel = manager.channel_srvc.get_channel_by_id(message.payload.channel_id)
+        if not channel:
+            await manager.send_error(ctx.websocket, "Channel does not exist.")
             return
-        return await handler(
-            ctx, message, manager, msg_in=msg_in, channel=channel, **kwargs
-        )
+        if not manager.channel_srvc.is_member(ctx.user, channel):
+            await manager.send_error(ctx.websocket, "You must join the channel first")
+            return
+        return await handler(ctx, message, manager)
 
     return wrapper
 
