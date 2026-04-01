@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { useUser } from '../contexts/UserContext'
+
 interface Member {
   username: string
   isOnline: boolean
@@ -7,6 +10,8 @@ interface Member {
 interface MembersListProps {
   members: Member[]
   currentChannelId: number | null
+  collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 function getUserColor(username: string): string {
@@ -15,20 +20,48 @@ function getUserColor(username: string): string {
   return palette[hash % palette.length]
 }
 
-export function MembersList({ members, currentChannelId }: MembersListProps) {
+export function MembersList({ members, currentChannelId, collapsed = false, onToggleCollapse }: MembersListProps) {
+  const { username: currentUsername } = useUser()
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const online = members.filter(m => m.isOnline).sort((a, b) => a.username.localeCompare(b.username))
   const offline = members.filter(m => !m.isOnline).sort((a, b) => a.username.localeCompare(b.username))
+
+  if (collapsed) {
+    return (
+      <div style={{
+        width: '32px', minWidth: '32px',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        overflow: 'hidden',
+        transition: 'width 0.15s ease',
+      }}>
+        <button
+          onClick={onToggleCollapse}
+          title="Expand members"
+          style={{
+            marginTop: '14px',
+            background: 'none', border: 'none',
+            color: 'var(--text-3)', cursor: 'pointer',
+            fontSize: '16px', lineHeight: 1, padding: '4px',
+          }}
+        >‹</button>
+      </div>
+    )
+  }
 
   return (
     <div style={{
       width: 'var(--members-w)',
       minWidth: 'var(--members-w)',
       background: 'var(--surface)',
-      borderLeft: '1px solid var(--border)',
+      border: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
-      height: '100vh',
       overflow: 'hidden',
+      transition: 'width 0.15s ease',
     }}>
       {/* Header */}
       <div style={{
@@ -40,14 +73,25 @@ export function MembersList({ members, currentChannelId }: MembersListProps) {
         justifyContent: 'space-between',
         flexShrink: 0,
       }}>
-        <span style={{
-          color: 'var(--text-3)',
-          fontSize: '14px',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-        }}>
-          members
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={onToggleCollapse}
+            title="Collapse"
+            style={{
+              background: 'none', border: 'none',
+              color: 'var(--text-3)', cursor: 'pointer',
+              fontSize: '16px', lineHeight: 1, padding: '2px 4px',
+            }}
+          >›</button>
+          <span style={{
+            color: 'var(--text-3)',
+            fontSize: '14px',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}>
+            members
+          </span>
+        </div>
         {currentChannelId !== null && members.length > 0 && (
           <span style={{ color: 'var(--text-3)', fontSize: '14px' }}>{members.length}</span>
         )}
@@ -76,7 +120,7 @@ export function MembersList({ members, currentChannelId }: MembersListProps) {
                 }}>
                   online — {online.length}
                 </div>
-                {online.map(m => <MemberRow key={m.username} member={m} />)}
+                {online.map(m => <MemberRow key={m.username} member={m} isYou={m.username === currentUsername} onClick={() => setSelectedMember(m)} />)}
               </div>
             )}
             {offline.length > 0 && (
@@ -90,26 +134,72 @@ export function MembersList({ members, currentChannelId }: MembersListProps) {
                 }}>
                   offline — {offline.length}
                 </div>
-                {offline.map(m => <MemberRow key={m.username} member={m} />)}
+                {offline.map(m => <MemberRow key={m.username} member={m} isYou={m.username === currentUsername} onClick={() => setSelectedMember(m)} />)}
               </div>
             )}
+
           </>
         )}
       </div>
+
+      {selectedMember && (
+        <div
+          onClick={() => setSelectedMember(null)}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.75)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 50,
+          }}
+        >
+          <div
+            className="modal-appear"
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border-bright)',
+              padding: '28px 30px',
+              width: '100%',
+              maxWidth: '340px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <span style={{ color: getUserColor(selectedMember.username), fontSize: '18px', fontWeight: 500 }}>
+                {selectedMember.username}
+              </span>
+              <button
+                onClick={() => setSelectedMember(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}
+              >✕</button>
+            </div>
+            <div style={{
+              color: 'var(--text-3)', fontSize: '14px',
+              border: '1px solid var(--border)',
+              padding: '10px 14px',
+              letterSpacing: '0.04em',
+            }}>
+              work in progress
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function MemberRow({ member }: { member: Member }) {
+function MemberRow({ member, isYou, onClick }: { member: Member; isYou: boolean; onClick: () => void }) {
   const color = getUserColor(member.username)
 
   return (
-    <div style={{
-      padding: '5px 15px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        padding: '5px 15px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+      }}>
       <span style={{
         fontSize: '12px',
         color: member.isOnline ? 'var(--accent)' : 'var(--text-3)',
@@ -129,6 +219,9 @@ function MemberRow({ member }: { member: Member }) {
       }}>
         {member.username}
       </span>
+      {isYou && (
+        <span style={{ color: 'var(--text-3)', fontSize: '13px', flexShrink: 0 }}>you</span>
+      )}
       {member.isGuest && (
         <span style={{
           color: 'var(--text-3)',

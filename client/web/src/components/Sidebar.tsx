@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useUser } from '../contexts/UserContext'
 
 interface Channel {
   id: number
@@ -12,11 +11,39 @@ interface SidebarProps {
   onChannelSelect?: (channelId: number) => void
   onAddChannel?: () => void
   onLeaveChannel?: (channelId: number) => void
+  collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
-export function Sidebar({ channels, currentChannelId, onChannelSelect, onAddChannel, onLeaveChannel }: SidebarProps) {
-  const { username, isAuthenticated } = useUser()
+export function Sidebar({ channels, currentChannelId, onChannelSelect, onAddChannel, onLeaveChannel, collapsed = false, onToggleCollapse }: SidebarProps) {
   const [hoveredChannel, setHoveredChannel] = useState<number | null>(null)
+
+  if (collapsed) {
+    return (
+      <div style={{
+        width: '32px', minWidth: '32px',
+        background: 'var(--surface)',
+        borderRight: '1px solid var(--border)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        height: '100vh',
+        overflow: 'hidden',
+        transition: 'width 0.15s ease',
+      }}>
+        <button
+          onClick={onToggleCollapse}
+          title="Expand channels"
+          style={{
+            marginTop: '14px',
+            background: 'none', border: 'none',
+            color: 'var(--text-3)', cursor: 'pointer',
+            fontSize: '16px', lineHeight: 1, padding: '4px',
+          }}
+        >›</button>
+      </div>
+    )
+  }
 
   return (
     <div style={{
@@ -28,42 +55,8 @@ export function Sidebar({ channels, currentChannelId, onChannelSelect, onAddChan
       flexDirection: 'column',
       height: '100vh',
       overflow: 'hidden',
+      transition: 'width 0.15s ease',
     }}>
-      {/* User row */}
-      <div style={{
-        height: 'var(--header-h)',
-        padding: '0 18px',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '9px',
-        flexShrink: 0,
-      }}>
-        <span style={{ color: 'var(--accent)', fontSize: '12px', lineHeight: 1 }}>●</span>
-        <span style={{
-          color: 'var(--text-1)',
-          flex: 1,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          fontSize: '16px',
-        }}>
-          {username}
-        </span>
-        {isAuthenticated && (
-          <span style={{
-            color: 'var(--accent)',
-            fontSize: '12px',
-            letterSpacing: '0.06em',
-            opacity: 0.6,
-            border: '1px solid var(--border-bright)',
-            padding: '2px 5px',
-          }}>
-            auth
-          </span>
-        )}
-      </div>
-
       {/* Channels header */}
       <div style={{
         padding: '13px 18px 8px',
@@ -80,6 +73,7 @@ export function Sidebar({ channels, currentChannelId, onChannelSelect, onAddChan
         }}>
           channels
         </span>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         <button
           onClick={onAddChannel}
           style={{
@@ -97,6 +91,16 @@ export function Sidebar({ channels, currentChannelId, onChannelSelect, onAddChan
         >
           +
         </button>
+        <button
+          onClick={onToggleCollapse}
+          title="Collapse"
+          style={{
+            background: 'none', border: 'none',
+            color: 'var(--text-3)', cursor: 'pointer',
+            fontSize: '16px', lineHeight: 1, padding: '2px 4px',
+          }}
+        >‹</button>
+        </div>
       </div>
 
       {/* Channel list */}

@@ -4,7 +4,6 @@ import './App.css'
 import { initializeMessageHandlers } from './config/messageRegistry'
 import { MessageRenderer } from './components/messages/MessageRenderer'
 import { MessageBuilder } from './services/messageBuilder'
-import { Sidebar } from './components/Sidebar'
 import { MembersList } from './components/MembersList'
 import { LoginModal } from './components/LoginModal'
 import { SignupModal } from './components/SignupModal'
@@ -47,6 +46,9 @@ function App() {
   const [typingUsers, setTypingUsers] = useState<Map<number, Map<string, number>>>(new Map())
   const typingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const lastTypingSentRef = useRef<Map<number, number>>(new Map())
+
+  const [membersCollapsed, setMembersCollapsed] = useState(false)
+  const [hoveredTab, setHoveredTab] = useState<number | null>(null)
 
   const [showCommandAutocomplete, setShowCommandAutocomplete] = useState(false)
   const [filteredCommands, setFilteredCommands] = useState<Command[]>([])
@@ -513,8 +515,89 @@ function App() {
     ? `message #${currentChannel?.name ?? currentChannelId}`
     : 'join a channel to start chatting'
 
-  return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+  const joinChannelModal = isJoinModalOpen ? (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 50,
+    }}>
+      <div
+        className="modal-appear"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border-bright)',
+          padding: '30px',
+          width: '100%',
+          maxWidth: '350px',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ color: 'var(--accent)', fontSize: '15px' }}>›</span>
+            <span style={{ color: 'var(--text-2)', fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              join channel
+            </span>
+          </div>
+          <button
+            onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
+            style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '19px', lineHeight: 1 }}
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleJoinChannel}>
+          <div style={{ marginBottom: '30px' }}>
+            <div style={{ color: 'var(--text-3)', fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '5px' }}>
+              channel id
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-bright)', paddingBottom: '4px' }}>
+              <span style={{ color: 'var(--accent)', userSelect: 'none' }}>#</span>
+              <input
+                type="number"
+                value={joinChannelId}
+                onChange={(e) => setJoinChannelId(e.target.value)}
+                style={{
+                  flex: 1, background: 'none', border: 'none', outline: 'none',
+                  color: 'var(--text-1)', fontSize: '19px', caretColor: 'var(--accent)',
+                  fontFamily: 'var(--font)',
+                }}
+                autoFocus
+                min="0"
+                placeholder="1"
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
+              style={{
+                flex: 1, background: 'none', border: '1px solid var(--border-bright)',
+                color: 'var(--text-2)', cursor: 'pointer', padding: '9px', fontSize: '16px',
+                fontFamily: 'var(--font)',
+              }}
+            >
+              cancel
+            </button>
+            <button
+              type="submit"
+              style={{
+                flex: 1, background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+                color: 'var(--accent)', cursor: 'pointer', padding: '9px', fontSize: '16px',
+                fontFamily: 'var(--font)',
+              }}
+            >
+              join
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  ) : null
+
+  const modals = (
+    <>
       <ErrorToast toasts={errorToasts} onDismiss={dismissToast} />
       <LoginModal
         isOpen={isLoginModalOpen}
@@ -528,97 +611,125 @@ function App() {
         onSignupSuccess={handleLoginSuccess}
         onSwitchToLogin={() => { setIsSignupModalOpen(false); setIsLoginModalOpen(true) }}
       />
+    </>
+  )
 
-      {/* Join Channel Modal */}
-      {isJoinModalOpen && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.75)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 50,
-        }}>
-          <div
-            className="modal-appear"
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border-bright)',
-              padding: '30px',
-              width: '100%',
-              maxWidth: '350px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ color: 'var(--accent)', fontSize: '15px' }}>›</span>
-                <span style={{ color: 'var(--text-2)', fontSize: '15px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  join channel
-                </span>
-              </div>
-              <button
-                onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
-                style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '19px', lineHeight: 1 }}
-              >
-                ✕
-              </button>
+  // Frontpage — no channels joined yet
+  if (channels.length === 0) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+        {modals}
+        {isJoinModalOpen && joinChannelModal}
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '40px', maxWidth: '340px', width: '100%' }}>
+          {/* Branding */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ color: 'var(--accent)', fontSize: '32px', letterSpacing: '0.1em', marginBottom: '8px' }}>justchat</div>
+            <div style={{ color: 'var(--text-3)', fontSize: '14px', letterSpacing: '0.08em' }}>
+              {isConnected ? '● connected' : '○ connecting...'}
             </div>
+          </div>
 
-            <form onSubmit={handleJoinChannel}>
-              <div style={{ marginBottom: '30px' }}>
-                <div style={{ color: 'var(--text-3)', fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '5px' }}>
-                  channel id
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-bright)', paddingBottom: '4px' }}>
-                  <span style={{ color: 'var(--accent)', userSelect: 'none' }}>#</span>
-                  <input
-                    type="number"
-                    value={joinChannelId}
-                    onChange={(e) => setJoinChannelId(e.target.value)}
-                    style={{
-                      flex: 1, background: 'none', border: 'none', outline: 'none',
-                      color: 'var(--text-1)', fontSize: '19px', caretColor: 'var(--accent)',
-                    }}
-                    autoFocus
-                    min="0"
-                    placeholder="1"
-                  />
-                </div>
+          {/* Actions */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            <button
+              onClick={() => setIsJoinModalOpen(true)}
+              style={{
+                background: 'var(--accent-dim)', border: '1px solid var(--accent)',
+                color: 'var(--accent)', cursor: 'pointer', padding: '12px',
+                fontSize: '16px', fontFamily: 'var(--font)', letterSpacing: '0.06em',
+                width: '100%',
+              }}
+            >
+              + join a channel
+            </button>
+
+            {isAuthenticated ? (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <span style={{
+                  flex: 1, border: '1px solid var(--border)',
+                  color: 'var(--text-2)', padding: '12px',
+                  fontSize: '15px', textAlign: 'center',
+                }}>
+                  {displayName}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    background: 'none', border: '1px solid var(--border-bright)',
+                    color: 'var(--text-2)', cursor: 'pointer', padding: '12px 18px',
+                    fontSize: '15px', fontFamily: 'var(--font)',
+                  }}
+                >
+                  logout
+                </button>
               </div>
+            ) : (
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
-                  type="button"
-                  onClick={() => { setIsJoinModalOpen(false); setJoinChannelId('') }}
+                  onClick={() => setIsLoginModalOpen(true)}
                   style={{
                     flex: 1, background: 'none', border: '1px solid var(--border-bright)',
-                    color: 'var(--text-2)', cursor: 'pointer', padding: '9px', fontSize: '16px',
+                    color: 'var(--text-2)', cursor: 'pointer', padding: '12px',
+                    fontSize: '15px', fontFamily: 'var(--font)',
                   }}
                 >
-                  cancel
+                  login
                 </button>
                 <button
-                  type="submit"
+                  onClick={() => setIsSignupModalOpen(true)}
                   style={{
-                    flex: 1, background: 'var(--accent-dim)', border: '1px solid var(--accent)',
-                    color: 'var(--accent)', cursor: 'pointer', padding: '9px', fontSize: '16px',
+                    flex: 1, background: 'none', border: '1px solid var(--border-bright)',
+                    color: 'var(--text-2)', cursor: 'pointer', padding: '12px',
+                    fontSize: '15px', fontFamily: 'var(--font)',
                   }}
                 >
-                  join
+                  sign up
                 </button>
               </div>
-            </form>
+            )}
+          </div>
+
+          <div style={{ color: 'var(--text-3)', fontSize: '13px', letterSpacing: '0.06em', textAlign: 'center' }}>
+            channels are identified by number · join any public channel to start
+          </div>
+
+          <div style={{
+            borderTop: '1px solid rgba(255,170,68,0.12)',
+            paddingTop: '20px',
+            width: '100%',
+            textAlign: 'center',
+          }}>
+            <span style={{ color: 'var(--text-warn)', fontSize: '13px', opacity: 0.75, letterSpacing: '0.04em' }}>
+              demo: server resets hourly · open registration · join any channel by number
+            </span>
           </div>
         </div>
-      )}
+      </div>
+    )
+  }
 
-      <Sidebar
-        channels={channels}
-        currentChannelId={currentChannelId}
-        onChannelSelect={handleChannelSelect}
-        onAddChannel={() => setIsJoinModalOpen(true)}
-        onLeaveChannel={handleLeaveChannel}
-      />
+  return (
+    <div style={{
+      display: 'flex', height: '100vh', background: 'var(--bg)',
+      overflow: 'hidden', padding: '8px', gap: '8px',
+    }}>
+      {modals}
+      {joinChannelModal}
 
-      {/* Main area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      {/* Main column */}
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column',
+        overflow: 'hidden', minWidth: 0, gap: '8px',
+      }}>
+
+      {/* Messages panel */}
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
+        border: '1px solid var(--border)',
+        background: 'var(--surface)',
+      }}>
 
         {/* Header */}
         <div style={{
@@ -626,22 +737,16 @@ function App() {
           padding: '0 20px',
           height: 'var(--header-h)',
           borderBottom: '1px solid var(--border)',
-          background: 'var(--surface)',
           flexShrink: 0,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ color: 'var(--text-3)', userSelect: 'none' }}>#</span>
-            <span style={{ color: currentChannel ? 'var(--text-1)' : 'var(--text-3)', fontWeight: '500', fontSize: '18px' }}>
-              {currentChannel ? currentChannel.name : 'no channel selected'}
-            </span>
-          </div>
+          <span style={{ color: 'var(--text-3)', fontSize: '15px', letterSpacing: '0.08em' }}>
+            justchat
+          </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             {isAuthenticated ? (
               <>
-                <span style={{ color: 'var(--text-2)', fontSize: '16px' }}>
-                  {displayName}
-                </span>
+                <span style={{ color: 'var(--text-2)', fontSize: '16px' }}>{displayName}</span>
                 <Link
                   to="/dashboard"
                   style={{ color: 'var(--text-2)', fontSize: '15px', textDecoration: 'none', letterSpacing: '0.04em' }}
@@ -676,12 +781,9 @@ function App() {
                 </button>
               </>
             )}
-
             <span style={{
               color: isConnected ? 'var(--accent)' : 'var(--text-error)',
-              fontSize: '14px',
-              letterSpacing: '0.08em',
-              userSelect: 'none',
+              fontSize: '14px', letterSpacing: '0.08em', userSelect: 'none',
             }}>
               ● {isConnected ? 'syn' : 'err'}
             </span>
@@ -690,39 +792,72 @@ function App() {
 
         {/* Demo banner */}
         <div style={{
-          padding: '6px 20px',
-          borderBottom: '1px solid rgba(255, 170, 68, 0.12)',
-          background: 'rgba(255, 170, 68, 0.03)',
+          padding: '5px 20px',
+          borderBottom: '1px solid rgba(255,170,68,0.1)',
+          background: 'rgba(255,170,68,0.025)',
           flexShrink: 0,
         }}>
-          <span style={{ color: 'var(--text-warn)', fontSize: '15px', opacity: 0.75 }}>
-            ─ demo: server resets hourly · open registration · join any channel by number
+          <span style={{ color: 'var(--text-warn)', fontSize: '14px', opacity: 0.7 }}>
+            demo: server resets hourly · open registration · join any channel by number
           </span>
+        </div>
+
+        {/* Channel tabs */}
+        <div style={{
+          display: 'flex', alignItems: 'stretch',
+          borderBottom: '1px solid var(--border)',
+          flexShrink: 0, overflowX: 'auto',
+          background: 'var(--surface-2)',
+          height: '38px',
+        }}>
+          {channels.map(channel => {
+            const isActive = currentChannelId === channel.id
+            const isHovered = hoveredTab === channel.id
+            return (
+              <div
+                key={channel.id}
+                onClick={() => handleChannelSelect(channel.id)}
+                onMouseEnter={() => setHoveredTab(channel.id)}
+                onMouseLeave={() => setHoveredTab(null)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '0 14px',
+                  cursor: 'pointer', flexShrink: 0,
+                  borderRight: '1px solid var(--border)',
+                  borderBottom: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+                  background: isActive ? 'var(--surface)' : 'transparent',
+                }}
+              >
+                <span style={{ color: isActive ? 'var(--accent)' : 'var(--text-3)', fontSize: '14px', userSelect: 'none' }}>#</span>
+                <span style={{ color: isActive ? 'var(--text-1)' : 'var(--text-2)', fontSize: '15px', userSelect: 'none' }}>
+                  {channel.name}
+                </span>
+                <button
+                  onClick={e => { e.stopPropagation(); handleLeaveChannel(channel.id) }}
+                  style={{
+                    background: 'none', border: 'none',
+                    color: 'var(--text-3)', cursor: 'pointer',
+                    fontSize: '13px', lineHeight: 1, padding: '0 0 0 2px',
+                    opacity: isHovered ? 1 : 0, transition: 'opacity 0.1s',
+                  }}
+                >✕</button>
+              </div>
+            )
+          })}
+          <button
+            onClick={() => setIsJoinModalOpen(true)}
+            style={{
+              background: 'none', border: 'none', borderRight: '1px solid var(--border)',
+              color: 'var(--text-3)', cursor: 'pointer',
+              padding: '0 14px', fontSize: '18px', flexShrink: 0,
+            }}
+            title="Join channel"
+          >+</button>
         </div>
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          {currentChannelId === null ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', height: '100%', gap: '15px',
-            }}>
-              <span style={{ color: 'var(--text-3)', fontSize: '16px' }}>
-                no channel selected
-              </span>
-              <button
-                onClick={() => setIsJoinModalOpen(true)}
-                style={{
-                  background: 'var(--accent-dim)', border: '1px solid var(--border-bright)',
-                  color: 'var(--text-2)', cursor: 'pointer', padding: '8px 20px', fontSize: '16px',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-bright)'; e.currentTarget.style.color = 'var(--text-2)' }}
-              >
-                + join channel
-              </button>
-            </div>
-          ) : filteredMessages.length === 0 ? (
+          {filteredMessages.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--text-3)', paddingTop: '24px', fontSize: '16px' }}>
               no messages in this channel
             </div>
@@ -743,88 +878,72 @@ function App() {
         {/* Typing indicator */}
         {typingText && (
           <div style={{
-            padding: '4px 16px',
-            borderTop: '1px solid var(--border)',
+            padding: '4px 16px', borderTop: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', gap: '6px',
-            flexShrink: 0,
-            height: '33px',
+            flexShrink: 0, height: '33px',
           }}>
             <span style={{ color: 'var(--text-3)', fontSize: '15px' }}>{typingText} typing</span>
             <span className="blink" style={{ color: 'var(--accent)', fontSize: '15px', fontWeight: '600' }}>_</span>
           </div>
         )}
+      </div>{/* end messages panel */}
 
-        {/* Input */}
-        <div style={{
-          padding: '10px 20px',
-          borderTop: '1px solid var(--border)',
-          background: 'var(--surface)',
-          flexShrink: 0,
-        }}>
-          <form
-            onSubmit={sendMessage}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}
-          >
-            {showCommandAutocomplete && (
-              <CommandAutocomplete
-                commands={filteredCommands}
-                selectedIndex={selectedCommandIndex}
-                onSelect={handleCommandSelect}
-              />
-            )}
-            {!showCommandAutocomplete && commandHint && (
-              <CommandArgHint
-                command={commandHint}
-                currentArgIndex={currentArgIndex}
-              />
-            )}
-
-            <span style={{ color: 'var(--accent)', userSelect: 'none', fontSize: '19px', lineHeight: 1, flexShrink: 0 }}>
-              ›
-            </span>
-            <input
-              ref={messageInputRef}
-              type="text"
-              value={message}
-              onChange={(e) => handleMessageChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={inputPlaceholder}
-              disabled={inputDisabled}
-              style={{
-                flex: 1,
-                background: 'none',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-1)',
-                fontSize: '18px',
-                caretColor: 'var(--accent)',
-                opacity: inputDisabled ? 0.35 : 1,
-              }}
-              autoComplete="off"
+      {/* Input panel */}
+      <div style={{
+        border: '1px solid var(--border)',
+        background: 'var(--surface)',
+        flexShrink: 0,
+        padding: '10px 20px',
+      }}>
+        <form onSubmit={sendMessage} style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
+          {showCommandAutocomplete && (
+            <CommandAutocomplete
+              commands={filteredCommands}
+              selectedIndex={selectedCommandIndex}
+              onSelect={handleCommandSelect}
             />
-            <button
-              type="submit"
-              disabled={!isConnected || !message.trim() || currentChannelId === null || isMuted}
-              style={{
-                background: 'none',
-                border: '1px solid var(--border-bright)',
-                color: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'var(--text-3)' : 'var(--text-2)',
-                cursor: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'not-allowed' : 'pointer',
-                padding: '4px 13px',
-                fontSize: '15px',
-                letterSpacing: '0.05em',
-                flexShrink: 0,
-              }}
-            >
-              send
-            </button>
-          </form>
-        </div>
+          )}
+          {!showCommandAutocomplete && commandHint && (
+            <CommandArgHint command={commandHint} currentArgIndex={currentArgIndex} />
+          )}
+          <span style={{ color: 'var(--accent)', userSelect: 'none', fontSize: '19px', lineHeight: 1, flexShrink: 0 }}>›</span>
+          <input
+            ref={messageInputRef}
+            type="text"
+            value={message}
+            onChange={(e) => handleMessageChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={inputPlaceholder}
+            disabled={inputDisabled}
+            style={{
+              flex: 1, background: 'none', border: 'none', outline: 'none',
+              color: 'var(--text-1)', fontSize: '18px', caretColor: 'var(--accent)',
+              opacity: inputDisabled ? 0.35 : 1,
+            }}
+            autoComplete="off"
+          />
+          <button
+            type="submit"
+            disabled={!isConnected || !message.trim() || currentChannelId === null || isMuted}
+            style={{
+              background: 'none', border: '1px solid var(--border-bright)',
+              color: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'var(--text-3)' : 'var(--text-2)',
+              cursor: (!isConnected || !message.trim() || currentChannelId === null || isMuted) ? 'not-allowed' : 'pointer',
+              padding: '4px 13px', fontSize: '15px', letterSpacing: '0.05em', flexShrink: 0,
+            }}
+          >
+            send
+          </button>
+        </form>
       </div>
+
+      </div>{/* end main column */}
 
       <MembersList
         members={currentChannelId !== null ? (channelMembers.get(currentChannelId) || []) : []}
         currentChannelId={currentChannelId}
+        collapsed={membersCollapsed}
+        onToggleCollapse={() => setMembersCollapsed(v => !v)}
       />
     </div>
   )
