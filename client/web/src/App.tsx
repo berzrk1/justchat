@@ -278,16 +278,28 @@ function App() {
     return () => clearInterval(interval)
   }, [muteEndTime])
 
-  const filteredMessages = currentChannelId !== null
-    ? messages.filter((msg: Message) => {
-        if (msg.type === 'chat_send' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        if ((msg.type === 'channel_join' || msg.type === 'channel_leave') && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        if (msg.type === 'chat_kick' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        return false
-      })
-    : []
+  const filteredMessages = (() => {
+    if (currentChannelId === null) return []
+    const ownJoinSeen = new Set<number>()
+    return messages.filter((msg: Message) => {
+      if (msg.type === 'chat_send' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+      if (msg.type === 'channel_join' && 'channel_id' in msg.payload) {
+        const p = msg.payload as { channel_id: number; user?: { username: string } }
+        if (p.channel_id !== currentChannelId) return false
+        if (p.user?.username === username) {
+          if (ownJoinSeen.has(p.channel_id)) return false
+          ownJoinSeen.add(p.channel_id)
+          return true
+        }
+        return true
+      }
+      if (msg.type === 'channel_leave' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+      if (msg.type === 'chat_kick' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+      if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+      if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
+      return false
+    })
+  })()
 
   function handleJoinChannel(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()

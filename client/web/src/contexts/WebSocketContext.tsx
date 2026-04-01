@@ -32,6 +32,7 @@ export function WebSocketProvider({ children, username, enabled = true, onUserna
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isIntentionalDisconnect = useRef(false)
+  const seenMessagesRef = useRef<Set<string>>(new Set())
 
   const connect = useCallback(() => {
     if (!enabled || !username) {
@@ -69,6 +70,11 @@ export function WebSocketProvider({ children, username, enabled = true, onUserna
           setIsReady(true)
         }
 
+        const fingerprint = parsedMessage.id || `${parsedMessage.type}-${parsedMessage.timestamp}-${JSON.stringify(parsedMessage.payload)}`
+        if (seenMessagesRef.current.has(fingerprint)) {
+          return
+        }
+        seenMessagesRef.current.add(fingerprint)
         setMessages(prev => [...prev, parsedMessage])
       }
     }
@@ -127,6 +133,7 @@ export function WebSocketProvider({ children, username, enabled = true, onUserna
 
   const clearMessages = useCallback(() => {
     setMessages([])
+    seenMessagesRef.current.clear()
   }, [])
 
   useEffect(() => {
