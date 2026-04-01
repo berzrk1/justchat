@@ -84,8 +84,7 @@ class ChatSend(BaseMessage):
 # Reacts
 class ReactPayload(BaseModel):
     model_config = {"extra": "forbid"}
-    # TODO: Limit the possible values for an emote
-    emote: str
+    emote: Literal["👍", "😍", "🔥", "😂", "😭"]
     message_id: UUID4
     channel_id: int
 
