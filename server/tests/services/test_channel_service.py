@@ -6,12 +6,11 @@ import pytest
 
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
-from chat_server.infrastructure.channel_manager import ChannelManager
+from chat_server.database.repositories.channel import ChannelRepository
 from chat_server.schemas.user import UserCreate
 from chat_server.services.channel_service import ChannelService
-from chat_server.services.membership_service import MembershipService
-from chat_server.services.message_broker import MessageBroker
-from chat_server.services.user_service import UserService
+from chat_server.database.repositories.membership import MembershipRepository
+from chat_server.infrastructure.message_broker import MessageBroker
 
 
 @pytest.fixture
@@ -21,7 +20,9 @@ def broker() -> AsyncMock:
 
 @pytest.fixture
 def svc(session_factory, broker) -> ChannelService:
-    return ChannelService(ChannelManager(), MembershipService(), broker, session_factory)
+    return ChannelService(
+        ChannelRepository(), MembershipRepository(), broker, session_factory
+    )
 
 
 @pytest.fixture
@@ -42,7 +43,9 @@ class TestGetHistory:
         messages = await svc.get_history(channel.id)
         assert messages == []
 
-    async def test_returns_persisted_messages(self, svc, channel, sender, session_factory) -> None:
+    async def test_returns_persisted_messages(
+        self, svc, channel, sender, session_factory
+    ) -> None:
         from chat_server.database.repositories.messages import MessageRepository
 
         async with session_factory() as s:
