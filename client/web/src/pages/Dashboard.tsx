@@ -6,124 +6,53 @@ import type { UserPublic, MessagePublic, UserUpdate } from '../types/dashboard'
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
 const MESSAGES_PER_PAGE = 5
 
-// Icon components
-function UsersIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  )
-}
-
-function UserCheckIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
-    </svg>
-  )
-}
-
-function UserGuestIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  )
-}
-
-function ChatIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-    </svg>
-  )
-}
-
-function HomeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  )
-}
-
-function DashboardIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    </svg>
-  )
-}
-
-function ChannelIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-    </svg>
-  )
-}
-
-function PencilIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  )
-}
-
-function TrashIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  )
-}
-
-function ChevronUpIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-    </svg>
-  )
-}
-
-function SearchIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  )
-}
-
-function RefreshIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  )
-}
-
-function generateAvatarColor(username: string): string {
-  const colors = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-    'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-    'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500',
-  ]
+function getUserColor(username: string): string {
+  const palette = ['#f472b6', '#a78bfa', '#60a5fa', '#34d399', '#fb923c', '#facc15', '#22d3ee', '#f87171']
   let hash = 0
   for (let i = 0; i < username.length; i++) {
     hash = username.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return colors[Math.abs(hash) % colors.length]
+  return palette[Math.abs(hash) % palette.length]
+}
+
+const S = {
+  page: { display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' } as React.CSSProperties,
+  sidebar: { width: '220px', minWidth: '220px', background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column' as const, height: '100vh' },
+  sidebarHeader: { padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' },
+  nav: { flex: 1, padding: '12px 0', overflowY: 'auto' as const },
+  main: { flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden', minWidth: 0 },
+  header: { padding: '0 24px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 },
+  content: { flex: 1, overflowY: 'auto' as const, padding: '24px' },
+  inputBase: { background: 'none', border: 'none', outline: 'none', color: 'var(--text-1)', fontFamily: 'var(--font)', fontSize: '16px', caretColor: 'var(--accent)' } as React.CSSProperties,
+  modalOverlay: { position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  modal: { background: 'var(--surface)', border: '1px solid var(--border-bright)', padding: '30px', width: '100%', maxWidth: '400px' } as React.CSSProperties,
+  labelStyle: { display: 'block', color: 'var(--text-3)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: '6px' },
+  modalInput: { width: '100%', background: 'none', border: 'none', borderBottom: '1px solid var(--border-bright)', outline: 'none', color: 'var(--text-1)', fontFamily: 'var(--font)', fontSize: '16px', padding: '6px 0', caretColor: 'var(--accent)' } as React.CSSProperties,
+}
+
+function NavItem({ to, label, active, dim }: { to: string; label: string; active?: boolean; dim?: boolean }) {
+  return (
+    <Link to={to} style={{
+      display: 'flex', alignItems: 'center', gap: '8px',
+      padding: '8px 20px',
+      color: active ? 'var(--text-1)' : dim ? 'var(--text-3)' : 'var(--text-2)',
+      textDecoration: 'none', fontSize: '15px',
+      borderLeft: `2px solid ${active ? 'var(--accent)' : 'transparent'}`,
+      background: active ? 'var(--accent-dim)' : 'transparent',
+    }}>
+      {active && <span style={{ color: 'var(--accent)', fontSize: '12px' }}>›</span>}
+      {label}
+    </Link>
+  )
+}
+
+function StatBlock({ label, value, color }: { label: string; value: string | number; color: string }) {
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: `3px solid ${color}`, padding: '16px 20px', flex: 1, minWidth: 0 }}>
+      <div style={{ color: 'var(--text-2)', fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{label}</div>
+      <div style={{ color, fontSize: '26px', fontWeight: '600' }}>{value}</div>
+    </div>
+  )
 }
 
 export function Dashboard() {
@@ -138,34 +67,28 @@ export function Dashboard() {
   const [searchInput, setSearchInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Stats
   const [registeredCount, setRegisteredCount] = useState(0)
   const [guestCount, setGuestCount] = useState(0)
 
-  // Expanded user state
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null)
   const [userMessages, setUserMessages] = useState<MessagePublic[]>([])
   const [totalMessages, setTotalMessages] = useState(0)
   const [messagesPage, setMessagesPage] = useState(0)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 
-  // Edit modal state
   const [editingUser, setEditingUser] = useState<UserPublic | null>(null)
   const [editUsername, setEditUsername] = useState('')
   const [editPassword, setEditPassword] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
-  // Delete modal state
   const [deletingUser, setDeletingUser] = useState<UserPublic | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Debounce search input
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null)
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(searchInput)
-      setCurrentPage(1)
-    }, 300)
+    const timer = setTimeout(() => { setSearchQuery(searchInput); setCurrentPage(1) }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
 
@@ -177,26 +100,16 @@ export function Dashboard() {
       setUsers(response.users)
       setTotalUsers(response.total_users)
       setTotalPages(response.total_pages)
-
-      // Calculate stats from current page (ideally this would come from a stats endpoint)
-      const registered = response.users.filter(u => !u.is_guest).length
-      const guests = response.users.filter(u => u.is_guest).length
-      setRegisteredCount(registered)
-      setGuestCount(guests)
+      setRegisteredCount(response.users.filter(u => !u.is_guest).length)
+      setGuestCount(response.users.filter(u => u.is_guest).length)
     } catch (err) {
-      if (err instanceof DashboardError) {
-        setError(err.detail || err.message)
-      } else {
-        setError('Failed to load users')
-      }
+      setError(err instanceof DashboardError ? (err.detail || err.message) : 'Failed to load users')
     } finally {
       setIsLoading(false)
     }
   }, [currentPage, pageSize, registeredOnly, searchQuery])
 
-  useEffect(() => {
-    loadUsers()
-  }, [loadUsers])
+  useEffect(() => { loadUsers() }, [loadUsers])
 
   async function loadUserMessages(userId: number, page: number = 0) {
     setIsLoadingMessages(true)
@@ -205,8 +118,7 @@ export function Dashboard() {
       setUserMessages(response.messages)
       setTotalMessages(response.count)
       setMessagesPage(page)
-    } catch (err) {
-      console.error('Failed to load messages:', err)
+    } catch {
       setUserMessages([])
       setTotalMessages(0)
     } finally {
@@ -216,478 +128,344 @@ export function Dashboard() {
 
   function handleRowClick(user: UserPublic) {
     if (expandedUserId === user.id) {
-      setExpandedUserId(null)
-      setUserMessages([])
-      setTotalMessages(0)
-      setMessagesPage(0)
+      setExpandedUserId(null); setUserMessages([]); setTotalMessages(0); setMessagesPage(0)
     } else {
-      setExpandedUserId(user.id)
-      loadUserMessages(user.id, 0)
+      setExpandedUserId(user.id); loadUserMessages(user.id, 0)
     }
   }
 
   function openEditModal(user: UserPublic, e: React.MouseEvent) {
     e.stopPropagation()
-    setEditingUser(user)
-    setEditUsername(user.username)
-    setEditPassword('')
-    setEditError(null)
+    setEditingUser(user); setEditUsername(user.username); setEditPassword(''); setEditError(null)
   }
 
   function closeEditModal() {
-    setEditingUser(null)
-    setEditUsername('')
-    setEditPassword('')
-    setEditError(null)
+    setEditingUser(null); setEditUsername(''); setEditPassword(''); setEditError(null)
   }
 
   async function handleEditSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!editingUser) return
-
-    setIsEditing(true)
-    setEditError(null)
-
+    setIsEditing(true); setEditError(null)
     const updateData: UserUpdate = {}
-    if (editUsername !== editingUser.username) {
-      updateData.username = editUsername
-    }
-    if (editPassword) {
-      updateData.password = editPassword
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      closeEditModal()
-      return
-    }
-
+    if (editUsername !== editingUser.username) updateData.username = editUsername
+    if (editPassword) updateData.password = editPassword
+    if (Object.keys(updateData).length === 0) { closeEditModal(); return }
     try {
-      const updatedUser = await dashboardService.updateUser(editingUser.id, updateData)
-      setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u))
+      const updated = await dashboardService.updateUser(editingUser.id, updateData)
+      setUsers(users.map(u => u.id === updated.id ? updated : u))
       closeEditModal()
     } catch (err) {
-      if (err instanceof DashboardError) {
-        setEditError(err.detail || err.message)
-      } else {
-        setEditError('Failed to update user')
-      }
+      setEditError(err instanceof DashboardError ? (err.detail || err.message) : 'Failed to update user')
     } finally {
       setIsEditing(false)
     }
   }
 
   function openDeleteModal(user: UserPublic, e: React.MouseEvent) {
-    e.stopPropagation()
-    setDeletingUser(user)
-  }
-
-  function closeDeleteModal() {
-    setDeletingUser(null)
+    e.stopPropagation(); setDeletingUser(user)
   }
 
   async function handleDeleteConfirm() {
     if (!deletingUser) return
-
     setIsDeleting(true)
     try {
       await dashboardService.deleteUser(deletingUser.id)
-      if (expandedUserId === deletingUser.id) {
-        setExpandedUserId(null)
-        setUserMessages([])
-      }
-      closeDeleteModal()
+      if (expandedUserId === deletingUser.id) { setExpandedUserId(null); setUserMessages([]) }
+      setDeletingUser(null)
       loadUsers()
-    } catch (err) {
-      console.error('Failed to delete user:', err)
-    } finally {
+    } catch { /* ignore */ } finally {
       setIsDeleting(false)
     }
   }
 
   const totalMessagesPages = Math.ceil(totalMessages / MESSAGES_PER_PAGE)
 
+  const thStyle: React.CSSProperties = {
+    padding: '10px 16px', textAlign: 'left', color: 'var(--text-3)',
+    fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase',
+    fontWeight: '500', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div style={S.page}>
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
-        <div className="p-6 border-b border-slate-700">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <DashboardIcon className="w-6 h-6 text-blue-400" />
-            Admin Panel
-          </h1>
+      <aside style={S.sidebar}>
+        <div style={S.sidebarHeader}>
+          <span style={{ color: 'var(--accent)', fontSize: '12px' }}>●</span>
+          <span style={{ color: 'var(--text-1)', fontSize: '15px', fontWeight: '500' }}>admin panel</span>
         </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link
-                to="/"
-                className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <HomeIcon className="w-5 h-5" />
-                Back to Chat
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-3 px-4 py-3 text-white bg-blue-600 rounded-lg"
-              >
-                <UsersIcon className="w-5 h-5" />
-                Users
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/dashboard/channels"
-                className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <ChannelIcon className="w-5 h-5" />
-                Channels
-              </Link>
-            </li>
-          </ul>
+        <nav style={S.nav}>
+          <NavItem to="/" label="← back to chat" dim />
+          <div style={{ height: '8px' }} />
+          <NavItem to="/dashboard" label="users" active />
+          <NavItem to="/dashboard/channels" label="channels" />
         </nav>
-
-        <div className="p-4 border-t border-slate-700">
-          <p className="text-xs text-slate-500 text-center">JustChat Admin v1.0</p>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)' }}>
+          <span style={{ color: 'var(--text-3)', fontSize: '12px' }}>justchat admin</span>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      {/* Main */}
+      <main style={S.main}>
         {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 px-8 py-6">
-          <h2 className="text-2xl font-bold text-white">User Management</h2>
-          <p className="text-slate-400 mt-1">Manage and monitor all registered users</p>
-        </header>
+        <div style={S.header}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--text-3)' }}>#</span>
+            <span style={{ color: 'var(--text-1)', fontWeight: '500', fontSize: '16px' }}>users</span>
+          </div>
+          <button
+            onClick={() => loadUsers()}
+            disabled={isLoading}
+            style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: '18px', opacity: isLoading ? 0.4 : 1 }}
+            title="Refresh"
+          >
+            <span className={isLoading ? 'spinning' : ''} style={{ display: 'inline-block' }}>↻</span>
+          </button>
+        </div>
 
-        <div className="p-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 shadow-lg shadow-blue-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm font-medium">Total Users</p>
-                  <p className="text-3xl font-bold text-white mt-1">{totalUsers}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <UsersIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 shadow-lg shadow-emerald-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-emerald-100 text-sm font-medium">Registered</p>
-                  <p className="text-3xl font-bold text-white mt-1">{registeredCount}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <UserCheckIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 shadow-lg shadow-amber-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-amber-100 text-sm font-medium">Guests</p>
-                  <p className="text-3xl font-bold text-white mt-1">{guestCount}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <UserGuestIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 shadow-lg shadow-purple-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm font-medium">Messages</p>
-                  <p className="text-3xl font-bold text-white mt-1">{totalMessages || '-'}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <ChatIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
+        <div style={S.content}>
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+            <StatBlock label="total users" value={totalUsers} color="var(--accent)" />
+            <StatBlock label="registered" value={registeredCount} color="#22c55e" />
+            <StatBlock label="guests" value={guestCount} color="#fbbf24" />
+            <StatBlock label="messages (page)" value={totalMessages || '—'} color="#60a5fa" />
           </div>
 
-          {/* Error State */}
+          {/* Error */}
           {error && (
-            <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl">
+            <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', color: 'var(--text-error)', padding: '10px 16px', fontSize: '14px', marginBottom: '20px' }}>
               {error}
             </div>
           )}
 
-          {/* Users Table Card */}
-          <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-white">All Users</h3>
+          {/* Table card */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            {/* Toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 16px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--accent)', userSelect: 'none' }}>›</span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder="search username..."
+                style={{ ...S.inputBase, fontSize: '14px', width: '180px' }}
+              />
+              <span style={{ color: 'var(--border-bright)' }}>|</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                <span style={{ color: 'var(--text-2)', fontSize: '13px' }}>registered only</span>
                 <button
-                  onClick={() => loadUsers()}
-                  disabled={isLoading}
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Refresh"
+                  onClick={() => { setCurrentPage(1); setRegisteredOnly(!registeredOnly) }}
+                  style={{
+                    width: '32px', height: '18px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+                    background: registeredOnly ? 'var(--accent)' : 'var(--border-bright)', position: 'relative', transition: 'background 0.2s',
+                  }}
                 >
-                  <RefreshIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                  <span style={{
+                    position: 'absolute', top: '3px', left: registeredOnly ? '15px' : '3px',
+                    width: '12px', height: '12px', borderRadius: '50%', background: 'var(--bg)', transition: 'left 0.2s',
+                  }} />
                 </button>
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Search username..."
-                    className="pl-9 pr-4 py-2 bg-slate-700 text-slate-200 text-sm rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-400 w-64"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <span className="text-sm text-slate-400">Registered only</span>
-                  <button
-                    onClick={() => {
-                      setCurrentPage(1)
-                      setRegisteredOnly(!registeredOnly)
-                    }}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${
-                      registeredOnly ? 'bg-blue-600' : 'bg-slate-600'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                        registeredOnly ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400">Show</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setCurrentPage(1)
-                      setPageSize(Number(e.target.value))
-                    }}
-                    className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {PAGE_SIZE_OPTIONS.map(size => (
-                      <option key={size} value={size}>{size}</option>
-                    ))}
-                  </select>
-                </div>
-                <span className="text-sm text-slate-400">{totalUsers} total</span>
-              </div>
+              </label>
+              <span style={{ color: 'var(--border-bright)' }}>|</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: 'var(--text-2)', fontSize: '13px' }}>show</span>
+                <select
+                  value={pageSize}
+                  onChange={e => { setCurrentPage(1); setPageSize(Number(e.target.value)) }}
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border-bright)', color: 'var(--text-1)', fontFamily: 'var(--font)', fontSize: '13px', padding: '2px 6px', outline: 'none' }}
+                >
+                  {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </label>
+              <span style={{ color: 'var(--text-3)', fontSize: '13px', marginLeft: 'auto' }}>{totalUsers} users</span>
             </div>
 
-            {/* Loading State */}
+            {/* Loading */}
             {isLoading && (
-              <div className="px-6 py-12 text-center">
-                <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-slate-400 mt-4">Loading users...</p>
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-2)', fontSize: '14px' }}>
+                loading<span className="blink">_</span>
               </div>
             )}
 
-            {/* Users Table */}
+            {/* Table */}
             {!isLoading && !error && (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr className="bg-slate-700/50">
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          User
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Joined
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          ID
-                        </th>
-                        <th className="px-6 py-4 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Actions
-                        </th>
+                      <tr>
+                        <th style={thStyle}>user</th>
+                        <th style={thStyle}>status</th>
+                        <th style={thStyle}>joined</th>
+                        <th style={thStyle}>id</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-700">
-                      {users.map(user => (
-                        <>
-                          <tr
-                            key={user.id}
-                            onClick={() => handleRowClick(user)}
-                            className="hover:bg-slate-700/50 cursor-pointer transition-colors group"
-                          >
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full ${generateAvatarColor(user.username)} flex items-center justify-center text-white font-semibold text-sm`}>
-                                  {user.username.charAt(0).toUpperCase()}
+                    <tbody>
+                      {users.map(user => {
+                        const isExpanded = expandedUserId === user.id
+                        const isHovered = hoveredRow === user.id
+                        const color = getUserColor(user.username)
+                        const tdStyle: React.CSSProperties = {
+                          padding: '10px 16px',
+                          borderBottom: '1px solid var(--border)',
+                          background: isExpanded ? 'var(--surface-2)' : isHovered ? 'rgba(255,255,255,0.02)' : 'transparent',
+                        }
+                        return (
+                          <>
+                            <tr
+                              key={user.id}
+                              onClick={() => handleRowClick(user)}
+                              onMouseEnter={() => setHoveredRow(user.id)}
+                              onMouseLeave={() => setHoveredRow(null)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <td style={tdStyle}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <span style={{ color, fontWeight: '500', fontSize: '15px' }}>{user.username}</span>
+                                  <span style={{ color: 'var(--text-3)', fontSize: '13px', transition: 'opacity 0.1s', opacity: isHovered || isExpanded ? 1 : 0 }}>
+                                    {isExpanded ? '▴' : '▾'}
+                                  </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium">{user.username}</span>
-                                  {expandedUserId === user.id ? (
-                                    <ChevronUpIcon className="w-4 h-4 text-slate-400" />
-                                  ) : (
-                                    <ChevronDownIcon className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {user.is_guest ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                  Guest
+                              </td>
+                              <td style={tdStyle}>
+                                {user.is_guest ? (
+                                  <span style={{ color: '#fbbf24', fontSize: '13px', border: '1px solid rgba(251,191,36,0.3)', padding: '2px 8px' }}>guest</span>
+                                ) : (
+                                  <span style={{ color: '#22c55e', fontSize: '13px', border: '1px solid rgba(34,197,94,0.3)', padding: '2px 8px' }}>registered</span>
+                                )}
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ color: 'var(--text-2)', fontSize: '14px' }}>
+                                  {new Date(user.created_at).toLocaleDateString()}
                                 </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                  Registered
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-slate-400 text-sm">
-                                {new Date(user.created_at).toLocaleDateString()}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="text-slate-400 font-mono text-sm">#{user.id}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={(e) => openEditModal(user, e)}
-                                  className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                                  title="Edit user"
-                                >
-                                  <PencilIcon />
-                                </button>
-                                <button
-                                  onClick={(e) => openDeleteModal(user, e)}
-                                  className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                  title="Delete user"
-                                >
-                                  <TrashIcon />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                          {/* Expanded Messages Row */}
-                          {expandedUserId === user.id && (
-                            <tr key={`${user.id}-messages`}>
-                              <td colSpan={5} className="px-6 py-4 bg-slate-900/50">
-                                <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
-                                  <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-                                    <ChatIcon className="w-5 h-5 text-purple-400" />
-                                    Message History
-                                    <span className="text-sm font-normal text-slate-400">({totalMessages} total)</span>
-                                  </h4>
-                                  {isLoadingMessages ? (
-                                    <div className="flex items-center justify-center py-8">
-                                      <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                  ) : userMessages.length === 0 ? (
-                                    <p className="text-slate-500 text-sm py-4 text-center">No messages found</p>
-                                  ) : (
-                                    <>
-                                      <div className="space-y-3 mb-4">
-                                        {userMessages.map((msg, idx) => (
-                                          <div key={idx} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                                            <div className="flex justify-between text-xs text-slate-500 mb-2">
-                                              <span className="bg-slate-700 px-2 py-0.5 rounded">Channel #{msg.channel_id}</span>
-                                              <span>{new Date(msg.timestamp).toLocaleString()}</span>
-                                            </div>
-                                            <p className="text-slate-300">{msg.content}</p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      {/* Messages Pagination */}
-                                      {totalMessagesPages > 1 && (
-                                        <div className="flex justify-center items-center gap-3 pt-2">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              loadUserMessages(user.id, messagesPage - 1)
-                                            }}
-                                            disabled={messagesPage === 0}
-                                            className="px-4 py-2 text-sm bg-slate-700 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition-colors"
-                                          >
-                                            Previous
-                                          </button>
-                                          <span className="text-sm text-slate-400">
-                                            Page {messagesPage + 1} of {totalMessagesPages}
-                                          </span>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              loadUserMessages(user.id, messagesPage + 1)
-                                            }}
-                                            disabled={messagesPage >= totalMessagesPages - 1}
-                                            className="px-4 py-2 text-sm bg-slate-700 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition-colors"
-                                          >
-                                            Next
-                                          </button>
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ color: 'var(--text-3)', fontSize: '14px' }}>#{user.id}</span>
+                              </td>
+                              <td style={{ ...tdStyle, textAlign: 'right' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                                  <button
+                                    onClick={e => openEditModal(user, e)}
+                                    style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: 'pointer', padding: '3px 8px', fontSize: '13px' }}
+                                    onMouseEnter={e => { e.currentTarget.style.color = '#60a5fa'; e.currentTarget.style.borderColor = '#60a5fa' }}
+                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-2)'; e.currentTarget.style.borderColor = 'var(--border-bright)' }}
+                                    title="Edit"
+                                  >
+                                    edit
+                                  </button>
+                                  <button
+                                    onClick={e => openDeleteModal(user, e)}
+                                    style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: 'pointer', padding: '3px 8px', fontSize: '13px' }}
+                                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-error)'; e.currentTarget.style.borderColor = 'var(--text-error)' }}
+                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-2)'; e.currentTarget.style.borderColor = 'var(--border-bright)' }}
+                                    title="Delete"
+                                  >
+                                    del
+                                  </button>
                                 </div>
                               </td>
                             </tr>
-                          )}
-                        </>
-                      ))}
+
+                            {/* Expanded messages */}
+                            {isExpanded && (
+                              <tr key={`${user.id}-msgs`}>
+                                <td colSpan={5} style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)', padding: '0' }}>
+                                  <div style={{ borderLeft: '2px solid var(--accent)', margin: '0 16px 12px', padding: '12px 16px' }}>
+                                    <div style={{ color: 'var(--text-2)', fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                      message history
+                                      <span style={{ color: 'var(--text-3)', marginLeft: '8px', textTransform: 'none', letterSpacing: 0 }}>({totalMessages} total)</span>
+                                    </div>
+
+                                    {isLoadingMessages ? (
+                                      <div style={{ color: 'var(--text-2)', fontSize: '14px', padding: '8px 0' }}>
+                                        loading<span className="blink">_</span>
+                                      </div>
+                                    ) : userMessages.length === 0 ? (
+                                      <div style={{ color: 'var(--text-3)', fontSize: '14px', padding: '8px 0' }}>no messages</div>
+                                    ) : (
+                                      <>
+                                        {userMessages.map((msg, idx) => (
+                                          <div key={idx} style={{ display: 'flex', gap: '12px', padding: '5px 0', borderBottom: idx < userMessages.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'baseline' }}>
+                                            <span style={{ color: 'var(--text-3)', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                                              {new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                            </span>
+                                            <span style={{ color: 'var(--text-3)', fontSize: '13px', whiteSpace: 'nowrap' }}>ch#{msg.channel_id}</span>
+                                            <span style={{ color: 'var(--text-1)', fontSize: '15px', wordBreak: 'break-word' }}>{msg.content}</span>
+                                          </div>
+                                        ))}
+
+                                        {totalMessagesPages > 1 && (
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                                            <button
+                                              onClick={e => { e.stopPropagation(); loadUserMessages(user.id, messagesPage - 1) }}
+                                              disabled={messagesPage === 0}
+                                              style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: messagesPage === 0 ? 'not-allowed' : 'pointer', padding: '3px 10px', fontSize: '13px', opacity: messagesPage === 0 ? 0.4 : 1 }}
+                                            >
+                                              ← prev
+                                            </button>
+                                            <span style={{ color: 'var(--text-3)', fontSize: '13px' }}>
+                                              {messagesPage + 1} / {totalMessagesPages}
+                                            </span>
+                                            <button
+                                              onClick={e => { e.stopPropagation(); loadUserMessages(user.id, messagesPage + 1) }}
+                                              disabled={messagesPage >= totalMessagesPages - 1}
+                                              style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: messagesPage >= totalMessagesPages - 1 ? 'not-allowed' : 'pointer', padding: '3px 10px', fontSize: '13px', opacity: messagesPage >= totalMessagesPages - 1 ? 0.4 : 1 }}
+                                            >
+                                              next →
+                                            </button>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Empty State */}
                 {users.length === 0 && (
-                  <div className="px-6 py-12 text-center">
-                    <UsersIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">No users found</p>
-                  </div>
+                  <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-3)', fontSize: '14px' }}>no users found</div>
                 )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="px-6 py-4 border-t border-slate-700 flex justify-between items-center">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid var(--border)' }}>
                     <button
                       onClick={() => setCurrentPage(p => p - 1)}
                       disabled={currentPage === 1}
-                      className="px-5 py-2.5 bg-slate-700 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition-colors font-medium"
+                      style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', padding: '5px 14px', fontSize: '14px', opacity: currentPage === 1 ? 0.4 : 1 }}
                     >
-                      Previous
+                      ← prev
                     </button>
-                    <div className="flex items-center gap-2">
+                    <div style={{ display: 'flex', gap: '4px' }}>
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let pageNum = i + 1
+                        let p = i + 1
                         if (totalPages > 5) {
-                          if (currentPage <= 3) {
-                            pageNum = i + 1
-                          } else if (currentPage > totalPages - 3) {
-                            pageNum = totalPages - 4 + i
-                          } else {
-                            pageNum = currentPage - 2 + i
-                          }
+                          if (currentPage <= 3) p = i + 1
+                          else if (currentPage > totalPages - 3) p = totalPages - 4 + i
+                          else p = currentPage - 2 + i
                         }
+                        const isActive = currentPage === p
                         return (
                           <button
-                            key={pageNum}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                              currentPage === pageNum
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                            }`}
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            style={{
+                              background: isActive ? 'var(--accent-dim)' : 'none',
+                              border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border-bright)'}`,
+                              color: isActive ? 'var(--accent)' : 'var(--text-2)',
+                              cursor: 'pointer', width: '32px', height: '32px', fontSize: '14px',
+                            }}
                           >
-                            {pageNum}
+                            {p}
                           </button>
                         )
                       })}
@@ -695,9 +473,9 @@ export function Dashboard() {
                     <button
                       onClick={() => setCurrentPage(p => p + 1)}
                       disabled={currentPage >= totalPages}
-                      className="px-5 py-2.5 bg-slate-700 text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-600 transition-colors font-medium"
+                      style={{ background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', padding: '5px 14px', fontSize: '14px', opacity: currentPage >= totalPages ? 0.4 : 1 }}
                     >
-                      Next
+                      next →
                     </button>
                   </div>
                 )}
@@ -709,71 +487,43 @@ export function Dashboard() {
 
       {/* Edit Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-slate-700">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Edit User</h2>
-              <button
-                onClick={closeEditModal}
-                className="text-slate-400 hover:text-white transition-colors p-1"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+        <div style={S.modalOverlay}>
+          <div className="modal-appear" style={S.modal}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: 'var(--accent)' }}>›</span>
+                <span style={{ color: 'var(--text-2)', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>edit user</span>
+              </div>
+              <button onClick={closeEditModal} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-5">
-              {editError && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">
-                  {editError}
-                </div>
-              )}
+            <div style={{ color: 'var(--text-3)', fontSize: '13px', marginBottom: '20px' }}>
+              editing <span style={{ color: getUserColor(editingUser.username) }}>{editingUser.username}</span>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  required
-                  disabled={isEditing}
-                />
+            {editError && (
+              <div style={{ color: 'var(--text-error)', fontSize: '13px', padding: '8px 10px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', marginBottom: '18px' }}>
+                {editError}
               </div>
+            )}
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  New Password
-                  <span className="text-slate-500 font-normal ml-1">(leave empty to keep current)</span>
-                </label>
-                <input
-                  type="password"
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter new password"
-                  disabled={isEditing}
-                />
+            <form onSubmit={handleEditSubmit}>
+              <div style={{ marginBottom: '18px' }}>
+                <label style={S.labelStyle}>username</label>
+                <input type="text" value={editUsername} onChange={e => setEditUsername(e.target.value)} style={S.modalInput} required disabled={isEditing} />
               </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={isEditing}
-                  className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isEditing ? 'Saving...' : 'Save Changes'}
+              <div style={{ marginBottom: '28px' }}>
+                <label style={S.labelStyle}>
+                  new password <span style={{ color: 'var(--text-3)', textTransform: 'none', letterSpacing: 0 }}>(leave empty to keep)</span>
+                </label>
+                <input type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)} style={S.modalInput} placeholder="••••••••" disabled={isEditing} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={closeEditModal} disabled={isEditing} style={{ flex: 1, background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: 'pointer', padding: '9px', fontSize: '15px' }}>
+                  cancel
                 </button>
-                <button
-                  type="button"
-                  onClick={closeEditModal}
-                  disabled={isEditing}
-                  className="flex-1 bg-slate-700 text-slate-300 py-3 px-4 rounded-xl font-semibold hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed transition-colors"
-                >
-                  Cancel
+                <button type="submit" disabled={isEditing} style={{ flex: 1, background: 'var(--accent-dim)', border: '1px solid var(--accent)', color: 'var(--accent)', cursor: isEditing ? 'not-allowed' : 'pointer', padding: '9px', fontSize: '15px', opacity: isEditing ? 0.6 : 1 }}>
+                  {isEditing ? '...' : 'save'}
                 </button>
               </div>
             </form>
@@ -781,35 +531,31 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       {deletingUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-slate-700">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrashIcon className="w-8 h-8 text-red-500" />
+        <div style={S.modalOverlay}>
+          <div className="modal-appear" style={S.modal}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: 'var(--text-error)' }}>✕</span>
+                <span style={{ color: 'var(--text-2)', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>delete user</span>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Delete User</h2>
-              <p className="text-slate-400">
-                Are you sure you want to delete <strong className="text-white">{deletingUser.username}</strong>?
-                <br />
-                <span className="text-red-400 text-sm">This action cannot be undone.</span>
-              </p>
+              <button onClick={() => setDeletingUser(null)} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="flex-1 bg-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-red-500 disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete User'}
+
+            <div style={{ marginBottom: '28px' }}>
+              <div style={{ color: 'var(--text-1)', fontSize: '15px', marginBottom: '8px' }}>
+                delete <span style={{ color: getUserColor(deletingUser.username) }}>{deletingUser.username}</span>?
+              </div>
+              <div style={{ color: 'var(--text-error)', fontSize: '13px', opacity: 0.75 }}>this action cannot be undone</div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setDeletingUser(null)} disabled={isDeleting} style={{ flex: 1, background: 'none', border: '1px solid var(--border-bright)', color: 'var(--text-2)', cursor: 'pointer', padding: '9px', fontSize: '15px' }}>
+                cancel
               </button>
-              <button
-                onClick={closeDeleteModal}
-                disabled={isDeleting}
-                className="flex-1 bg-slate-700 text-slate-300 py-3 px-4 rounded-xl font-semibold hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed transition-colors"
-              >
-                Cancel
+              <button onClick={handleDeleteConfirm} disabled={isDeleting} style={{ flex: 1, background: 'rgba(248,113,113,0.1)', border: '1px solid var(--text-error)', color: 'var(--text-error)', cursor: isDeleting ? 'not-allowed' : 'pointer', padding: '9px', fontSize: '15px', opacity: isDeleting ? 0.6 : 1 }}>
+                {isDeleting ? '...' : 'delete'}
               </button>
             </div>
           </div>

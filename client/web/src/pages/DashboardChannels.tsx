@@ -3,75 +3,48 @@ import { Link } from 'react-router-dom'
 import { dashboardService, DashboardError } from '../services/dashboardService'
 import type { Channel, ChannelMember } from '../types/dashboard'
 
-// Icon components
-function UsersIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-    </svg>
-  )
-}
-
-function HomeIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  )
-}
-
-function DashboardIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    </svg>
-  )
-}
-
-function ChannelIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  )
-}
-
-function ChevronUpIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-    </svg>
-  )
-}
-
-function RefreshIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  )
-}
-
-function generateAvatarColor(username: string): string {
-  const colors = [
-    'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-    'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-    'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-    'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500',
-  ]
+function getUserColor(username: string): string {
+  const palette = ['#f472b6', '#a78bfa', '#60a5fa', '#34d399', '#fb923c', '#facc15', '#22d3ee', '#f87171']
   let hash = 0
   for (let i = 0; i < username.length; i++) {
     hash = username.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return colors[Math.abs(hash) % colors.length]
+  return palette[Math.abs(hash) % palette.length]
+}
+
+const S = {
+  page: { display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' } as React.CSSProperties,
+  sidebar: { width: '220px', minWidth: '220px', background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column' as const, height: '100vh' },
+  sidebarHeader: { padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px' },
+  nav: { flex: 1, padding: '12px 0', overflowY: 'auto' as const },
+  main: { flex: 1, display: 'flex', flexDirection: 'column' as const, overflow: 'hidden', minWidth: 0 },
+  header: { padding: '0 24px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 },
+  content: { flex: 1, overflowY: 'auto' as const, padding: '24px' },
+}
+
+function NavItem({ to, label, active, dim }: { to: string; label: string; active?: boolean; dim?: boolean }) {
+  return (
+    <Link to={to} style={{
+      display: 'flex', alignItems: 'center', gap: '8px',
+      padding: '8px 20px',
+      color: active ? 'var(--text-1)' : dim ? 'var(--text-3)' : 'var(--text-2)',
+      textDecoration: 'none', fontSize: '15px',
+      borderLeft: `2px solid ${active ? 'var(--accent)' : 'transparent'}`,
+      background: active ? 'var(--accent-dim)' : 'transparent',
+    }}>
+      {active && <span style={{ color: 'var(--accent)', fontSize: '12px' }}>›</span>}
+      {label}
+    </Link>
+  )
+}
+
+function StatBlock({ label, value, color }: { label: string; value: string | number; color: string }) {
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderLeft: `3px solid ${color}`, padding: '16px 20px', flex: 1, minWidth: 0 }}>
+      <div style={{ color: 'var(--text-2)', fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{label}</div>
+      <div style={{ color, fontSize: '26px', fontWeight: '600' }}>{value}</div>
+    </div>
+  )
 }
 
 export function DashboardChannels() {
@@ -80,11 +53,12 @@ export function DashboardChannels() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Expanded channel state
   const [expandedChannelId, setExpandedChannelId] = useState<number | null>(null)
   const [channelMembers, setChannelMembers] = useState<ChannelMember[]>([])
   const [totalMembers, setTotalMembers] = useState(0)
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
+
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null)
 
   const loadChannels = useCallback(async () => {
     setIsLoading(true)
@@ -135,238 +109,183 @@ export function DashboardChannels() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div style={S.page}>
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
-        <div className="p-6 border-b border-slate-700">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <DashboardIcon className="w-6 h-6 text-blue-400" />
-            Admin Panel
-          </h1>
+      <aside style={S.sidebar}>
+        <div style={S.sidebarHeader}>
+          <span style={{ color: 'var(--accent)', fontSize: '13px' }}>⬡</span>
+          <span style={{ color: 'var(--text-1)', fontSize: '15px' }}>admin panel</span>
         </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link
-                to="/"
-                className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <HomeIcon className="w-5 h-5" />
-                Back to Chat
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <UsersIcon className="w-5 h-5" />
-                Users
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/dashboard/channels"
-                className="flex items-center gap-3 px-4 py-3 text-white bg-blue-600 rounded-lg"
-              >
-                <ChannelIcon className="w-5 h-5" />
-                Channels
-              </Link>
-            </li>
-          </ul>
+        <nav style={S.nav}>
+          <NavItem to="/" label="← back to chat" dim />
+          <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
+          <NavItem to="/dashboard" label="users" />
+          <NavItem to="/dashboard/channels" label="channels" active />
         </nav>
-
-        <div className="p-4 border-t border-slate-700">
-          <p className="text-xs text-slate-500 text-center">JustChat Admin v1.0</p>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)' }}>
+          <span style={{ color: 'var(--text-3)', fontSize: '12px' }}>justchat admin v1</span>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {/* Header */}
-        <header className="bg-slate-800 border-b border-slate-700 px-8 py-6">
-          <h2 className="text-2xl font-bold text-white">Channel Management</h2>
-          <p className="text-slate-400 mt-1">View active channels and their members</p>
+      {/* Main */}
+      <main style={S.main}>
+        <header style={S.header}>
+          <span style={{ color: 'var(--text-1)', fontSize: '15px' }}>channels</span>
+          <button
+            onClick={() => loadChannels()}
+            disabled={isLoading}
+            style={{
+              background: 'none', border: '1px solid var(--border-bright)',
+              color: isLoading ? 'var(--text-3)' : 'var(--text-2)',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              padding: '4px 10px', fontSize: '13px', fontFamily: 'var(--font)',
+            }}
+          >
+            {isLoading ? <span className="spinning" style={{ display: 'inline-block' }}>↻</span> : '↻'} refresh
+          </button>
         </header>
 
-        <div className="p-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 shadow-lg shadow-indigo-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-indigo-100 text-sm font-medium">Active Channels</p>
-                  <p className="text-3xl font-bold text-white mt-1">{totalChannels}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <ChannelIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 shadow-lg shadow-teal-500/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-teal-100 text-sm font-medium">Selected Channel Members</p>
-                  <p className="text-3xl font-bold text-white mt-1">{expandedChannelId ? totalMembers : '-'}</p>
-                </div>
-                <div className="bg-white/20 rounded-xl p-3">
-                  <UsersIcon className="w-8 h-8 text-white" />
-                </div>
-              </div>
-            </div>
+        <div style={S.content}>
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+            <StatBlock label="active channels" value={totalChannels} color="var(--accent)" />
+            <StatBlock
+              label="selected channel members"
+              value={expandedChannelId ? totalMembers : '—'}
+              color="#34d399"
+            />
           </div>
 
-          {/* Error State */}
+          {/* Error */}
           {error && (
-            <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-4 rounded-xl">
+            <div style={{
+              background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.2)',
+              color: 'var(--text-error)', padding: '10px 16px', fontSize: '14px', marginBottom: '16px',
+            }}>
               {error}
             </div>
           )}
 
-          {/* Channels Table Card */}
-          <div className="bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-700 flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-white">Active Channels</h3>
-                <button
-                  onClick={() => loadChannels()}
-                  disabled={isLoading}
-                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Refresh"
-                >
-                  <RefreshIcon className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-                </button>
-              </div>
-              <span className="text-sm text-slate-400">{totalChannels} total</span>
+          {/* Table */}
+          <div style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
+            <div style={{
+              padding: '0 16px', height: '40px', display: 'flex', alignItems: 'center',
+              borderBottom: '1px solid var(--border)', gap: '16px',
+            }}>
+              <span style={{ color: 'var(--text-2)', fontSize: '13px' }}>active channels</span>
+              <span style={{ color: 'var(--text-3)', fontSize: '13px' }}>{totalChannels} total</span>
             </div>
 
-            {/* Loading State */}
-            {isLoading && (
-              <div className="px-6 py-12 text-center">
-                <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-slate-400 mt-4">Loading channels...</p>
+            {isLoading ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-2)', fontSize: '14px' }}>
+                loading<span className="blink">_</span>
               </div>
-            )}
-
-            {/* Channels Table */}
-            {!isLoading && !error && (
+            ) : !error && (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-slate-700/50">
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Channel ID
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-right text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700">
-                      {channels.map(channel => (
-                        <>
-                          <tr
-                            key={channel.id}
-                            onClick={() => handleRowClick(channel)}
-                            className="hover:bg-slate-700/50 cursor-pointer transition-colors group"
-                          >
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold text-sm">
-                                  <ChannelIcon className="w-5 h-5" />
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium font-mono">#{channel.id}</span>
-                                  {expandedChannelId === channel.id ? (
-                                    <ChevronUpIcon className="w-4 h-4 text-slate-400" />
-                                  ) : (
-                                    <ChevronDownIcon className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  )}
-                                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '8px 16px', textAlign: 'left', color: 'var(--text-3)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 400 }}>channel</th>
+                      <th style={{ padding: '8px 16px', textAlign: 'left', color: 'var(--text-3)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 400 }}>status</th>
+                      <th style={{ padding: '8px 16px', textAlign: 'right', color: 'var(--text-3)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 400 }}>action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channels.map(channel => (
+                      <>
+                        <tr
+                          key={channel.id}
+                          onClick={() => handleRowClick(channel)}
+                          onMouseEnter={() => setHoveredRow(channel.id)}
+                          onMouseLeave={() => setHoveredRow(null)}
+                          style={{
+                            borderBottom: '1px solid var(--border)',
+                            cursor: 'pointer',
+                            background: expandedChannelId === channel.id
+                              ? 'var(--accent-dim)'
+                              : hoveredRow === channel.id
+                              ? 'rgba(255,255,255,0.02)'
+                              : 'transparent',
+                            borderLeft: expandedChannelId === channel.id ? '2px solid var(--accent)' : '2px solid transparent',
+                          }}
+                        >
+                          <td style={{ padding: '10px 16px' }}>
+                            <span style={{ color: 'var(--accent)', fontSize: '14px', marginRight: '6px' }}>#</span>
+                            <span style={{ color: expandedChannelId === channel.id ? 'var(--text-1)' : 'var(--text-2)', fontSize: '15px' }}>
+                              {channel.id}
+                            </span>
+                            <span style={{ color: 'var(--text-3)', fontSize: '13px', marginLeft: '8px' }}>
+                              {expandedChannelId === channel.id ? '▲' : hoveredRow === channel.id ? '▼' : ''}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 16px' }}>
+                            <span style={{
+                              color: '#34d399', fontSize: '12px',
+                              border: '1px solid rgba(52,211,153,0.3)',
+                              padding: '2px 8px', letterSpacing: '0.06em',
+                            }}>
+                              active
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRowClick(channel) }}
+                              style={{
+                                background: 'none', border: '1px solid var(--border-bright)',
+                                color: 'var(--text-2)', cursor: 'pointer', padding: '3px 10px',
+                                fontSize: '13px', fontFamily: 'var(--font)',
+                              }}
+                            >
+                              {expandedChannelId === channel.id ? 'hide' : 'members'}
+                            </button>
+                          </td>
+                        </tr>
+
+                        {expandedChannelId === channel.id && (
+                          <tr key={`${channel.id}-members`}>
+                            <td colSpan={3} style={{ padding: '12px 16px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                              <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ color: 'var(--text-2)', fontSize: '13px', letterSpacing: '0.06em' }}>members</span>
+                                <span style={{ color: 'var(--text-3)', fontSize: '12px' }}>{isLoadingMembers ? '…' : `${totalMembers} total`}</span>
                               </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                Active
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-end">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleRowClick(channel)
-                                  }}
-                                  className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                                >
-                                  {expandedChannelId === channel.id ? 'Hide Members' : 'View Members'}
-                                </button>
-                              </div>
+                              {isLoadingMembers ? (
+                                <div style={{ color: 'var(--text-2)', fontSize: '14px', padding: '8px 0' }}>
+                                  loading<span className="blink">_</span>
+                                </div>
+                              ) : channelMembers.length === 0 ? (
+                                <div style={{ color: 'var(--text-3)', fontSize: '14px', padding: '8px 0' }}>no members</div>
+                              ) : (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                  {channelMembers.map((member) => (
+                                    <div key={member.id} style={{
+                                      display: 'flex', alignItems: 'center', gap: '8px',
+                                      background: 'var(--surface)', border: '1px solid var(--border)',
+                                      padding: '6px 12px', fontSize: '14px',
+                                    }}>
+                                      <span style={{ color: getUserColor(member.username), fontWeight: 500 }}>{member.username}</span>
+                                      <span style={{ color: 'var(--text-3)', fontSize: '12px' }}>#{member.id}</span>
+                                      {member.is_guest && (
+                                        <span style={{
+                                          color: 'var(--text-2)', fontSize: '11px',
+                                          border: '1px solid var(--border-bright)',
+                                          padding: '1px 5px', letterSpacing: '0.05em',
+                                        }}>g</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </td>
                           </tr>
-                          {/* Expanded Members Row */}
-                          {expandedChannelId === channel.id && (
-                            <tr key={`${channel.id}-members`}>
-                              <td colSpan={3} className="px-6 py-4 bg-slate-900/50">
-                                <div className="bg-slate-800 rounded-xl border border-slate-700 p-5">
-                                  <h4 className="font-semibold text-white mb-4 flex items-center gap-2">
-                                    <UsersIcon className="w-5 h-5 text-teal-400" />
-                                    Channel Members
-                                    <span className="text-sm font-normal text-slate-400">({totalMembers} total)</span>
-                                  </h4>
-                                  {isLoadingMembers ? (
-                                    <div className="flex items-center justify-center py-8">
-                                      <div className="w-6 h-6 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                  ) : channelMembers.length === 0 ? (
-                                    <p className="text-slate-500 text-sm py-4 text-center">No members in this channel</p>
-                                  ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                      {channelMembers.map((member) => (
-                                        <div key={member.id} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 flex items-center gap-3">
-                                          <div className={`w-10 h-10 rounded-full ${generateAvatarColor(member.username)} flex items-center justify-center text-white font-semibold text-sm`}>
-                                            {member.username.charAt(0).toUpperCase()}
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-white font-medium truncate">{member.username}</p>
-                                            <p className="text-xs text-slate-500">ID: #{member.id}</p>
-                                          </div>
-                                          {member.is_guest ? (
-                                            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                              Guest
-                                            </span>
-                                          ) : (
-                                            <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                              Registered
-                                            </span>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                        )}
+                      </>
+                    ))}
+                  </tbody>
+                </table>
 
-                {/* Empty State */}
                 {channels.length === 0 && (
-                  <div className="px-6 py-12 text-center">
-                    <ChannelIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">No active channels</p>
-                    <p className="text-slate-500 text-sm mt-1">Channels will appear here when users join them</p>
+                  <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-3)', fontSize: '14px' }}>
+                    no active channels
                   </div>
                 )}
               </>

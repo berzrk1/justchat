@@ -9,10 +9,12 @@ import { MembersList } from './components/MembersList'
 import { LoginModal } from './components/LoginModal'
 import { SignupModal } from './components/SignupModal'
 import { CommandAutocomplete } from './components/CommandAutocomplete'
+import { CommandArgHint } from './components/CommandArgHint'
+import { ErrorToast, type Toast } from './components/ErrorToast'
 import { useUser } from './contexts/UserContext'
 import { useWebSocket } from './contexts/WebSocketContext'
 import type { Message } from './types/messages'
-import { filterCommands, parseCommand, type Command } from './config/commandRegistry'
+import { filterCommands, getCommand, parseCommand, type Command } from './config/commandRegistry'
 
 interface Channel {
   id: number
@@ -49,7 +51,11 @@ function App() {
   const [showCommandAutocomplete, setShowCommandAutocomplete] = useState(false)
   const [filteredCommands, setFilteredCommands] = useState<Command[]>([])
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0)
+  const [commandHint, setCommandHint] = useState<Command | null>(null)
+  const [currentArgIndex, setCurrentArgIndex] = useState(0)
   const messageInputRef = useRef<HTMLInputElement>(null)
+
+  const [errorToasts, setErrorToasts] = useState<Toast[]>([])
 
   const [muteEndTime, setMuteEndTime] = useState<number | null>(null)
   const [muteTimeRemaining, setMuteTimeRemaining] = useState<number>(0)
@@ -59,8 +65,23 @@ function App() {
   }, [])
 
   useEffect(() => {
+    messages.forEach((message, index) => {
+      const messageKey = message.id || `${message.timestamp}-${message.type}-${index}`
+      if (processedMessageIds.current.has(messageKey)) return
+      if (message.type === 'error') {
+        const payload = message.payload as { detail: string }
+        setErrorToasts(prev => [...prev, { id: messageKey, detail: payload.detail }])
+        processedMessageIds.current.add(messageKey)
+      }
+    })
+  }, [messages])
+
+  useEffect(() => {
     if (!isReady) {
       joinedChannelsRef.current.clear()
+      setChannels([])
+      setCurrentChannelId(null)
+      setChannelMembers(new Map())
     }
   }, [isReady])
 
@@ -262,7 +283,6 @@ function App() {
         if (msg.type === 'chat_kick' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
         if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
         if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
-        if (msg.type === 'error') return true
         return false
       })
     : []
@@ -317,22 +337,9 @@ function App() {
   function handleMessageChange(newMessage: string) {
     setMessage(newMessage)
 
-    if (newMessage.startsWith('/')) {
-      const parsed = parseCommand(newMessage)
-      if (parsed) {
-        const matches = filterCommands(parsed.command)
-        setFilteredCommands(matches)
-        setShowCommandAutocomplete(matches.length > 0)
-        setSelectedCommandIndex(0)
-      } else if (newMessage === '/') {
-        setFilteredCommands(filterCommands(''))
-        setShowCommandAutocomplete(true)
-        setSelectedCommandIndex(0)
-      } else {
-        setShowCommandAutocomplete(false)
-      }
-    } else {
+    if (!newMessage.startsWith('/')) {
       setShowCommandAutocomplete(false)
+      setCommandHint(null)
       if (currentChannelId !== null && newMessage.length > 0 && isConnected) {
         const now = Date.now()
         const lastSent = lastTypingSentRef.current.get(currentChannelId) || 0
@@ -341,16 +348,66 @@ function App() {
           lastTypingSentRef.current.set(currentChannelId, now)
         }
       }
+      return
+    }
+
+    if (newMessage === '/') {
+      setFilteredCommands(filterCommands(''))
+      setShowCommandAutocomplete(true)
+      setSelectedCommandIndex(0)
+      setCommandHint(null)
+      return
+    }
+
+    const parsed = parseCommand(newMessage)
+    if (!parsed) {
+      setShowCommandAutocomplete(false)
+      setCommandHint(null)
+      return
+    }
+
+    const hasSpaceAfterCommand = newMessage.slice(1).includes(' ')
+
+    if (hasSpaceAfterCommand) {
+      const exactCommand = getCommand(parsed.command)
+      if (exactCommand) {
+        setShowCommandAutocomplete(false)
+        setCommandHint(exactCommand)
+        const endsWithSpace = newMessage.endsWith(' ')
+        const argIdx = endsWithSpace ? parsed.args.length : Math.max(0, parsed.args.length - 1)
+        setCurrentArgIndex(Math.min(argIdx, Math.max(0, exactCommand.arguments.length - 1)))
+      } else {
+        setShowCommandAutocomplete(false)
+        setCommandHint(null)
+      }
+    } else {
+      const matches = filterCommands(parsed.command)
+      setFilteredCommands(matches)
+      setShowCommandAutocomplete(matches.length > 0)
+      setSelectedCommandIndex(0)
+      setCommandHint(null)
     }
   }
 
   function handleCommandSelect(command: Command) {
     setMessage(`/${command.name} `)
     setShowCommandAutocomplete(false)
+    if (command.arguments.length > 0) {
+      setCommandHint(command)
+      setCurrentArgIndex(0)
+    } else {
+      setCommandHint(null)
+    }
     messageInputRef.current?.focus()
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setShowCommandAutocomplete(false)
+      setCommandHint(null)
+      return
+    }
     if (!showCommandAutocomplete) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -362,9 +419,6 @@ function App() {
       e.preventDefault()
       const selected = filteredCommands[selectedCommandIndex]
       if (selected) handleCommandSelect(selected)
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      setShowCommandAutocomplete(false)
     }
   }
 
@@ -420,6 +474,11 @@ function App() {
     }
 
     setShowCommandAutocomplete(false)
+    setCommandHint(null)
+  }
+
+  function dismissToast(id: string) {
+    setErrorToasts(prev => prev.filter(t => t.id !== id))
   }
 
   function handleLoginSuccess(loggedInUsername: string) {
@@ -456,6 +515,7 @@ function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+      <ErrorToast toasts={errorToasts} onDismiss={dismissToast} />
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -710,6 +770,12 @@ function App() {
                 commands={filteredCommands}
                 selectedIndex={selectedCommandIndex}
                 onSelect={handleCommandSelect}
+              />
+            )}
+            {!showCommandAutocomplete && commandHint && (
+              <CommandArgHint
+                command={commandHint}
+                currentArgIndex={currentArgIndex}
               />
             )}
 
