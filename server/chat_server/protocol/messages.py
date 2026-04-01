@@ -147,7 +147,7 @@ class MuteCommandPayload(BaseModel):
     model_config = {"extra": "forbid"}
     channel_id: int
     target: str
-    duration: int | None = None
+    duration: int = 60
     reason: str = ""
 
 

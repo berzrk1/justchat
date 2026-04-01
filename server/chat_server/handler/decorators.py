@@ -74,20 +74,22 @@ def require_membership(handler):
 def require_permission(permission: str):
     """
     Check for permission
+    For now, any registered user can execute commands
     """
 
     def decorator(handler):
         @wraps(handler)
-        async def wrapper(ctx, message, manager, *, channel, **kwargs):
+        async def wrapper(
+            ctx: ConnectionContext, message: BaseMessage, manager: ConnectionManager
+        ):
             # TODO: Implement permission checking
             if ctx.user.is_guest:
                 await manager.send_error(
                     ctx.websocket, "You don't have permission to run this command."
                 )
                 return
-
-            logging.warning(f"Permission check '{permission}' - allowing {ctx.user}")
-            return await handler(ctx, message, manager, channel=channel, **kwargs)
+            logging.debug(f"Permission check '{permission}' - allowing {ctx.user}")
+            return await handler(ctx, message, manager)
 
         return wrapper
 

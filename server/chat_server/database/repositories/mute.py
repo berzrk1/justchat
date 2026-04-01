@@ -31,7 +31,7 @@ class MuteRepository:
             self._session.add(mute_db)
             await self._session.commit()
             await self._session.refresh(mute_db)
-            logging.info(f"Mute logged: {mute_db}")
+            logging.debug(f"Mute logged: {mute_db}")
         except Exception as e:
             await self._session.rollback()
             logging.error(f"Failed to mute user: {e}")
@@ -52,7 +52,7 @@ class MuteRepository:
             try:
                 await self._session.delete(mute_db)
                 await self._session.commit()
-                logging.info(f"Unmuted user {target_id} in channel {channel_id}.")
+                logging.debug(f"Unmuted user {target_id} in channel {channel_id}.")
             except Exception as e:
                 await self._session.rollback()
                 logging.error(f"Failed to unmute user in database: {e}")

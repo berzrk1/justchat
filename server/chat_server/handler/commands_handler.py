@@ -3,7 +3,6 @@ import logging
 from datetime import datetime
 from uuid import uuid4
 
-from chat_server.connection.channel import Channel
 from chat_server.connection.context import ConnectionContext
 from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.handler.decorators import (
@@ -11,7 +10,6 @@ from chat_server.handler.decorators import (
     require_membership,
     require_permission,
 )
-from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.messages import (
     KickCommand,
     MuteCommand,
@@ -20,53 +18,59 @@ from chat_server.protocol.messages import (
     UnMuteCommandPayload,
 )
 
+logger = logging.getLogger(__name__)
 
-@require_channel
+
 @require_membership
 @require_permission("kick")
 async def handler_kick(
     ctx: ConnectionContext,
-    message: BaseMessage,
+    message: KickCommand,
     manager: ConnectionManager,
-    *,
-    msg_in,
-    channel: Channel,
 ):
     """
     Handle kick command
     """
     try:
+        channel = manager.channel_srvc.get_channel_by_id(message.payload.channel_id)
+        if not channel:
+            return
+
         target = manager.channel_srvc.find_member_by_username(
-            msg_in.payload.channel_id, msg_in.payload.target
+            message.payload.channel_id, message.payload.target
         )
 
         if target:
-            payload = msg_in.payload
+            payload = message.payload
             kick_msg = KickCommand(
                 timestamp=datetime.now(), id=uuid4(), payload=payload
             )
             await manager.channel_srvc.send_to_channel(channel, kick_msg)
             await manager.channel_srvc.leave_channel(target, channel)
+            logger.info(f"{repr(ctx.user)} kicked {repr(target)} in {repr(channel)}")
     except Exception as e:
-        logging.error(f"Error handling CHAT_KICK: {e}")
+        logger.error(
+            f"Error when {repr(ctx.user)} kicked {repr(target)} in {repr(channel)}: {e}"
+        )
+        await manager.send_error(ctx.websocket, "Failed to kick user")
 
 
-@require_channel
 @require_membership
 @require_permission("mute")
 async def handler_mute(
     ctx: ConnectionContext,
-    message: BaseMessage,
+    message: MuteCommand,
     manager: ConnectionManager,
-    *,
-    msg_in,
-    channel: Channel,
 ):
     """
     Handle mute command
     """
     try:
-        payload = msg_in.payload
+        channel = manager.channel_srvc.get_channel_by_id(message.payload.channel_id)
+        if not channel:
+            return
+
+        payload = message.payload
         target = manager.channel_srvc.find_member_by_username(
             payload.channel_id, payload.target
         )
@@ -80,8 +84,6 @@ async def handler_mute(
                     duration=payload.duration,
                     reason=payload.reason,
                 )
-                logging.info(f"{repr(ctx.user)} is muting {target}.")
-
                 server_payload = MuteCommandPayload(
                     channel_id=channel.id,
                     target=target.username,
@@ -94,9 +96,13 @@ async def handler_mute(
                 )
 
                 await manager.channel_srvc.send_to_channel(channel, server_rsp)
+                logger.info(f"{repr(ctx.user)} muted {repr(target)} in {repr(channel)}")
 
     except Exception as e:
-        logging.error(f"Error handling CHAT_MUTE: {e}")
+        logger.error(
+            f"Error when {repr(ctx.user)} muted {repr(target)} in {repr(channel)}: {e}"
+        )
+        await manager.send_error(ctx.websocket, "Failed to mute user")
 
 
 @require_channel
@@ -104,17 +110,18 @@ async def handler_mute(
 @require_permission("mute")
 async def handler_unmute(
     ctx: ConnectionContext,
-    message: BaseMessage,
+    message: UnMuteCommand,
     manager: ConnectionManager,
-    *,
-    msg_in,
-    channel: Channel,
 ):
     """
     Handle unmute command
     """
     try:
-        payload = msg_in.payload
+        channel = manager.channel_srvc.get_channel_by_id(message.payload.channel_id)
+        if not channel:
+            return
+
+        payload = message.payload
         target = manager.channel_srvc.find_member_by_username(
             payload.channel_id, payload.target
         )
@@ -122,7 +129,7 @@ async def handler_unmute(
         if target:
             async with mute_srvc_factory() as srvc:
                 await srvc.unmute_user(target, channel)
-                logging.info(f"{repr(ctx.user)} is unmuting {target}.")
+                logger.info(f"{repr(ctx.user)} is unmuting {target}.")
 
                 server_payload = UnMuteCommandPayload(
                     channel_id=channel.id,
@@ -134,6 +141,12 @@ async def handler_unmute(
                 )
 
                 await manager.channel_srvc.send_to_channel(channel, server_rsp)
+                logger.info(
+                    f"{repr(ctx.user)} unmuted {repr(target)} in {repr(channel)}"
+                )
 
     except Exception as e:
-        logging.error(f"Error handling CHAT_UNMUTE: {e}")
+        logger.error(
+            f"Error when {repr(ctx.user)} unmuted {repr(target)} in {repr(channel)}: {e}"
+        )
+        await manager.send_error(ctx.websocket, "Failed to unmute user")
