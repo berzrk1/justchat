@@ -30,15 +30,8 @@ async def dispatch(
     Route a Message to its appropriate Handler
     """
 
-    handler = HANDLERS.get(message.type)
+    handler = HANDLERS[message.type]
     logging.debug(
         f"This handler was invoked: {handler.__name__ if handler else 'Unknown Handler'} "
     )
-
-    if handler is None:
-        # TODO: Return a message error or some exception. It will never happen
-        # here since there is a verification check in manager.handle_message()
-        logging.debug(f"Unknown Message Type: {message.type}. Payload: {message}")
-        return
-
     await handler(ctx, message, manager)

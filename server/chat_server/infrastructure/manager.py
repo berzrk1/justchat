@@ -101,19 +101,22 @@ class ConnectionManager:
         """
         from chat_server.handler import router
 
-        logging.info(f"Received: {data}")
+        try:
+            logging.info(f"Received: {data}")
+            msg = BaseMessage.from_json(data)
 
-        msg = BaseMessage.from_json(data)
+            if msg is None:
+                logging.warning(f"Client sent a malformed data: {data}")
+                await self.send_error(websocket, "Invalid message format")
+                raise ValidationError
 
-        if msg is None:
-            logging.warning(f"Client sent a malformed data: {msg}")
+            ctx = self.connections.get_by_websocket(websocket)
+
+            if ctx is None:
+                logging.warning("Received message from connection without a Context")
+                return
+
+            await router.dispatch(ctx, msg, self)
+        except ValidationError:
+            logging.warning(f"Client sent a malformed data: {data}")
             await self.send_error(websocket, "Invalid message format")
-            return
-
-        ctx = self.connections.get_by_websocket(websocket)
-
-        if ctx is None:
-            logging.warning("Received message from connection without a Context")
-            return
-
-        await router.dispatch(ctx, msg, self)
