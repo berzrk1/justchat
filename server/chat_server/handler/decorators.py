@@ -97,18 +97,22 @@ def require_permission(permission: str):
 def require_not_muted(handler):
     """
     Ensure the user is not muted in the channel
+
+    No validation for if the user belongs to the channel or the channel exists.
+    Use the other decorators, if needed.
     """
 
     @wraps(handler)
-    async def wrapper(ctx, message, manager, *, msg_in, channel, **kwargs):
+    async def wrapper(
+        ctx: ConnectionContext, message: BaseMessage, manager: ConnectionManager
+    ):
         async with mute_srvc_factory() as srvc:
-            if await srvc.is_muted(ctx.user, channel):
+            channel = manager.channel_srvc.get_channel_by_id(message.payload.channel_id)
+            if await srvc.is_muted(ctx.user, channel):  # type: ignore
                 await manager.send_error(
                     ctx.websocket, "You are muted in this channel."
                 )
                 return
-            return await handler(
-                ctx, message, manager, msg_in=msg_in, channel=channel, **kwargs
-            )
+            return await handler(ctx, message, manager)
 
     return wrapper
