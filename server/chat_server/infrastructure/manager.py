@@ -49,7 +49,6 @@ class ConnectionManager:
         try:
             hello_msg = await websocket.receive_text()
             hello = messages.Hello.model_validate_json(hello_msg)
-            logging.debug(f"{hello =}")
             user = await self.auth.authenticate(hello.payload.token)
         except ValidationError as e:
             logging.warning(f"Invalid HELLO message {e}")
@@ -71,7 +70,7 @@ class ConnectionManager:
         ctx = ConnectionContext(websocket=websocket, user=user)
         self.connections.add(ctx)
 
-        logging.info(f"Connection accepted: {repr(ctx)}")
+        logging.info(f"Connection accepted for {repr(ctx.user)}")
 
     async def handle_disconnect(self, websocket: WebSocket) -> None:
         """
@@ -85,7 +84,7 @@ class ConnectionManager:
 
         await self.channel_srvc.leave_all_channels(ctx.user)
 
-        logging.info(f"Connection closed: {repr(ctx)}")
+        logging.info(f"Connection closed by {repr(ctx.user)}")
 
     async def send_error(self, websocket: WebSocket, detail: str) -> None:
         """

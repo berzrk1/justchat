@@ -35,7 +35,7 @@ class ConnectionRegistry:
 
         if ctx:
             self._connection_by_user.pop(ctx.user, None)
-            logging.info(f"Connection removed: {repr(ctx.user)}")
+            logging.debug(f"Connection removed: {repr(ctx.user)}")
 
         return ctx
 

@@ -50,5 +50,5 @@ class AuthenticationService:
         """
         async with async_session() as session:
             guest = await crud.create_guest_user(session)
-        logging.info(f"Created Guest User: {repr(guest)}")
+        logging.debug(f"Created Guest User: {repr(guest)}")
         return User(guest.username, guest.id, True)

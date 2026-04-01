@@ -21,7 +21,7 @@ import sys
 
 # Configure logging to work with uvicorn
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="{asctime}  |  {levelname}  |  {filename}::{funcName}  |  {message}",
     style="{",
     datefmt="%d-%m-%Y %H:%M",
@@ -109,5 +109,4 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             await manager.handle_message(websocket, data)
     except WebSocketDisconnect:
-        logging.info("Connection closed by the client.")
         await manager.handle_disconnect(websocket)
