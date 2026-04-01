@@ -10,7 +10,6 @@ from chat_server.handler.decorators import (
     require_channel,
     require_membership,
     require_permission,
-    validate_message,
 )
 from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.messages import (
@@ -22,7 +21,6 @@ from chat_server.protocol.messages import (
 )
 
 
-@validate_message(KickCommand)
 @require_channel
 @require_membership
 @require_permission("kick")
@@ -53,7 +51,6 @@ async def handler_kick(
         logging.error(f"Error handling CHAT_KICK: {e}")
 
 
-@validate_message(MuteCommand)
 @require_channel
 @require_membership
 @require_permission("mute")
@@ -102,7 +99,6 @@ async def handler_mute(
         logging.error(f"Error handling CHAT_MUTE: {e}")
 
 
-@validate_message(UnMuteCommand)
 @require_channel
 @require_membership
 @require_permission("mute")

@@ -6,9 +6,7 @@ from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.handler.decorators import (
     require_channel,
     require_membership,
-    validate_message,
 )
-from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.messages import (
     ChannelJoin,
     ChannelLeave,
@@ -17,34 +15,30 @@ from chat_server.protocol.messages import (
 logger = logging.getLogger(__name__)
 
 
-@validate_message(ChannelJoin)
 async def handler_channel_join(
     ctx: ConnectionContext,
-    message: BaseMessage,
+    message: ChannelJoin,
     manager: ConnectionManager,
-    msg_in,
-) -> None:
+):
     """
-    Handle incoming message from Channel Join
+    Handle Channel Join message
     """
-    channel_response = Channel(
-        id=msg_in.payload.channel_id, name=f"Channel {msg_in.payload.channel_id}"
-    )
-
     try:
-        await manager.channel_srvc.join_channel(ctx.user, channel_response)
-        logging.info(f"{repr(ctx.user)} joined {repr(channel_response)}")
+        channel = Channel(
+            id=message.payload.channel_id, name=f"Channel {message.payload.channel_id}"
+        )
+        await manager.channel_srvc.join_channel(ctx.user, channel)
+        logging.info(f"{repr(ctx.user)} joined {repr(channel)}")
     except Exception as e:
-        logging.info(f"Error adding {repr(ctx.user)} to {repr(channel_response)}: {e}")
+        logging.error(f"Error adding {repr(ctx.user)} to {repr(channel)}: {e}")
         await manager.send_error(ctx.websocket, "Error trying to join the channel.")
 
 
-@validate_message(ChannelLeave)
 @require_channel
 @require_membership
 async def handler_channel_leave(
     ctx: ConnectionContext,
-    message: BaseMessage,
+    message: ChannelLeave,
     manager: ConnectionManager,
     *,
     msg_in,

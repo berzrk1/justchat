@@ -8,7 +8,6 @@ from chat_server.handler.decorators import (
     require_channel,
     require_membership,
     require_not_muted,
-    validate_message,
 )
 from chat_server.infrastructure.manager import ConnectionManager
 from chat_server.protocol.basemessage import BaseMessage
@@ -23,7 +22,6 @@ from chat_server.protocol.messages import (
 )
 
 
-@validate_message(ChatSend)
 @require_channel
 @require_membership
 @require_not_muted
@@ -46,7 +44,6 @@ async def handler_chat_send(
         await manager.send_error(ctx.websocket, "Failed to send message")
 
 
-@validate_message(ReactAdd)
 @require_channel
 @require_membership
 async def handler_chat_react(
@@ -79,7 +76,6 @@ async def handler_chat_react(
     await manager.channel_srvc.send_to_channel(channel, response)
 
 
-@validate_message(TypingStart)
 @require_channel
 @require_membership
 @require_not_muted
