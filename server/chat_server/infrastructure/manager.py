@@ -101,7 +101,7 @@ class ConnectionManager:
         from chat_server.handler import router
 
         try:
-            logging.info(f"Received: {data}")
+            logging.debug(f"Received: {data}")
             msg = BaseMessage.from_json(data)
 
             if msg is None:

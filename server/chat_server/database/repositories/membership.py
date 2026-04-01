@@ -1,4 +1,3 @@
-import logging
 from chat_server.connection.channel import Channel
 from chat_server.connection.user import User
 
@@ -18,8 +17,6 @@ class MembershipRepository:
         """
         Join a User to a Channel.
         """
-        logging.info(f"{repr(user)} is joining {repr(channel)}")
-
         if channel not in self._channel_members:
             self._channel_members[channel] = set()
         self._channel_members[channel].add(user)
@@ -28,23 +25,15 @@ class MembershipRepository:
             self._user_channels[user] = set()
         self._user_channels[user].add(channel)
 
-        logging.debug(f"Join: {self._channel_members = }")
-        logging.debug(f"Join: {self._user_channels = }")
-
     def leave(self, user: User, channel: Channel) -> None:
         """
         Remove a User from a Channel.
         """
-        logging.info(f"{repr(user)} is leaving {repr(channel)}")
-
         if channel in self._channel_members:
             self._channel_members[channel].discard(user)
 
         if user in self._user_channels:
             self._user_channels[user].discard(channel)
-
-        logging.debug(f"Leave: {self._channel_members = }")
-        logging.debug(f"Leave: {self._user_channels = }")
 
     def get_channel_members(self, channel: Channel) -> set[User]:
         """

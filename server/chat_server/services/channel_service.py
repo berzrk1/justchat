@@ -176,7 +176,7 @@ class ChannelService:
         )
         msg = ChannelJoin(timestamp=datetime.now(), id=uuid.uuid4(), payload=payload)
 
-        logging.info(f"User Join Alert: {repr(user)} has joined {repr(channel)}")
+        logging.debug(f"User Join Alert: {repr(user)} has joined {repr(channel)}")
 
         await self.send_to_channel(channel, msg)
 
@@ -189,6 +189,6 @@ class ChannelService:
         )
         msg = ChannelLeave(timestamp=datetime.now(), id=uuid.uuid4(), payload=payload)
 
-        logging.info(f"User Left Alert: {repr(user)} has left {repr(channel)}")
+        logging.debug(f"User Left Alert: {repr(user)} has left {repr(channel)}")
 
         await self.send_to_channel(channel, msg)
