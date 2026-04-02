@@ -2,7 +2,8 @@ from fastapi import Depends
 from typing import AsyncGenerator, Annotated
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.sql import insert, select
-from chat_server.database.models import Base, UserTable
+from sqlalchemy import event
+from chat_server.database.models import UserTable
 from chat_server.security.utils import get_password_hash
 from chat_server.settings import settings
 
@@ -40,3 +41,10 @@ async def init_db() -> None:
                     hashed_password=get_password_hash(settings.SUPERUSER_PASSWORD),
                 )
             )
+
+
+if settings.is_production:
+
+    @event.listens_for(async_engine.engine, "do_connect")
+    def provide_token(dialect, conn_rec, cargs, cparams):
+        cparams["password"] = settings.get_authentication_token()
