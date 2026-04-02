@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, create_engine
 from sqlalchemy import pool
 
 from alembic import context
@@ -64,11 +64,16 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+
+    if settings.is_development:
+        connectable = create_engine(str(settings.DATABASE_URL), poolclass=pool.NullPool)
+    else:
+        ssl = {"sslmode": "verify-full", "sslrootcert": "/certs/global-bundle.pem"}
+        connectable = create_engine(
+            str(settings.DATABASE_URL),
+            connect_args=ssl,
+            poolclass=pool.NullPool,
+        )
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
