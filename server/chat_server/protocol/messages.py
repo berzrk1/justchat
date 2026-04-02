@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Literal, Annotated
 
-from pydantic import UUID4, BaseModel, ConfigDict
+from pydantic import UUID4, BaseModel, ConfigDict, StringConstraints
 
 from chat_server.protocol.basemessage import BaseMessage
 from chat_server.protocol.enums import MessageType
@@ -72,7 +72,7 @@ class ChatSendPayload(BaseModel):
     model_config = {"extra": "forbid"}
     channel_id: int
     sender: UserFrom | None = None
-    content: str
+    content: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
 
 
 @register_message(MessageType.CHAT_SEND)
