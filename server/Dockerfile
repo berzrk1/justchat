@@ -35,4 +35,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
   && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/*
 USER nonroot
-CMD ["uv", "run", "fastapi", "run", "--host", "0.0.0.0", "--workers", "4", "chat_server/main.py"]
+CMD ["uv", "run", "fastapi", "run", "--host", "0.0.0.0", "--workers", "2", "chat_server/main.py"]
