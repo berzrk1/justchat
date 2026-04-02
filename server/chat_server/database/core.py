@@ -30,7 +30,6 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 async def init_db() -> None:
     """Creates all database tables."""
     async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
         res = await conn.execute(
             select(UserTable).where(UserTable.username == settings.SUPERUSER_USERNAME)
         )

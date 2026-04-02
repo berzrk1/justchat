@@ -20,11 +20,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked
 
 ENV PATH="/app/.venv/bin:$PATH"
-
-ENTRYPOINT []
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 FROM base AS dev
-USER nonroot
 CMD ["uv", "run", "fastapi", "dev", "--host", "0.0.0.0", "chat_server/main.py"]
 
 FROM base AS prod

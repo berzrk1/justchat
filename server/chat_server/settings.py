@@ -1,4 +1,3 @@
-from functools import lru_cache
 from urllib.parse import quote
 
 import boto3

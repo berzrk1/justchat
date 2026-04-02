@@ -15,6 +15,8 @@ services:
           memory: 1g
     networks:
       - chat_network
+    volumes:
+      - ./alembic/versions/:/app/alembic/versions/
   postgres:
     image: postgres:16-alpine
     container_name: chat_database
