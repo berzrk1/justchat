@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '🎉', '🔥']
+const EMOJIS = ['👍', '😍', '🔥', '😂', '😭']
 
 interface ReactionPickerProps {
   onSelect: (emote: string) => void
