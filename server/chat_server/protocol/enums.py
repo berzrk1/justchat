@@ -10,8 +10,9 @@ class MessageType(StrEnum):
     ERROR = "error"
 
     CHAT_SEND = "chat_send"  # Used when a user send a normal message
-    REACT_ADD = "chat_react_add"  # Use when a user reacts to a message
-    REACT_REMOVE = "chat_react_remove"  # Use when a user removes a react from a message
+    REACT = "chat_react"  # User reactions
+    REACT_ADD = "chat_react_add"  # Server response to add a reaction
+    REACT_REMOVE = "chat_react_remove"  # Server response to remove a reaction
     TYPING_START = "chat_typing"  # User start typing
 
     # Chat Commands

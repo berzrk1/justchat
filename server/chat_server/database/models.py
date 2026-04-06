@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import ForeignKey, func, Unicode
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import Boolean, DateTime, Integer, String
 from chat_server.settings import settings
 
@@ -20,6 +20,8 @@ class UserTable(Base):
     hashed_password: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    reactions: Mapped[list["ReactTable"]] = relationship(back_populates="sender")
 
 
 class ChannelTable(Base):
@@ -40,6 +42,7 @@ class MessageTable(Base):
     )
     timestamp: Mapped[datetime] = mapped_column(DateTime)
     content: Mapped[str] = mapped_column(String)
+    reactions: Mapped[list["ReactTable"]] = relationship(back_populates="message")
 
 
 class MuteTable(Base):
@@ -53,3 +56,17 @@ class MuteTable(Base):
     channel_id: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+
+class ReactTable(Base):
+    __tablename__ = "reactions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    message_id: Mapped[UUID] = mapped_column(ForeignKey("messages.id"))
+    message: Mapped[MessageTable] = relationship(back_populates="reactions")
+    emote: Mapped[str] = mapped_column(Unicode)
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    sender: Mapped[UserTable] = relationship(back_populates="reactions")
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.id=}{self.message_id=}{self.emote=}{self.sender_id=})"

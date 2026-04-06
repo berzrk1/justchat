@@ -4,8 +4,7 @@ import type {
   ChatSendMessageClientToServer,
   ChannelJoinMessageClientToServer,
   ChannelLeaveMessageClientToServer,
-  ReactAddMessageClientToServer,
-  ReactRemoveMessageClientToServer,
+  ReactMessageClientToServer,
   TypingStartMessageClientToServer,
   ChatKickMessageClientToServer,
   ChatMuteMessageClientToServer,
@@ -60,29 +59,12 @@ export class MessageBuilder {
   }
 
   /**
-   * Build REACT_ADD message (Client → Server).
-   * Add a reaction to a message.
+   * Build REACT message (Client → Server).
+   * Backend handles add/remove/toggle logic.
    */
-  static reactAdd(channelId: number, messageId: string, emote: string): ReactAddMessageClientToServer {
+  static react(channelId: number, messageId: string, emote: string): ReactMessageClientToServer {
     return {
-      type: MessageType.REACT_ADD,
-      timestamp: new Date().toISOString(),
-      id: crypto.randomUUID(),
-      payload: {
-        channel_id: channelId,
-        message_id: messageId,
-        emote: emote,
-      },
-    };
-  }
-
-  /**
-   * Build REACT_REMOVE message (Client → Server).
-   * Remove a reaction from a message.
-   */
-  static reactRemove(channelId: number, messageId: string, emote: string): ReactRemoveMessageClientToServer {
-    return {
-      type: MessageType.REACT_REMOVE,
+      type: MessageType.REACT,
       timestamp: new Date().toISOString(),
       id: crypto.randomUUID(),
       payload: {

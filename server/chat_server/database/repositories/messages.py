@@ -1,3 +1,4 @@
+from sqlalchemy.orm import joinedload
 import logging
 from datetime import datetime
 from uuid import UUID
@@ -42,6 +43,9 @@ class MessageRepository:
             logging.error(f"Failed to create message in database: {e}")
             raise
 
+    async def get_by_id(self, id: UUID) -> MessageTable | None:
+        return await self._session.get(MessageTable, id)
+
     async def get_by_channel(
         self, channel_id: int, limit: int = 50, before_id: UUID | None = None
     ) -> list[MessageTable]:
@@ -66,6 +70,13 @@ class MessageRepository:
         """
         Retrive all messages stored from a channel.
         """
-        stmt = select(MessageTable).where(MessageTable.channel_id == channel_id)
+        stmt = (
+            select(MessageTable)
+            .where(MessageTable.channel_id == channel_id)
+            .options(joinedload(MessageTable.reactions))
+        )
         res = await self._session.execute(stmt)
+
+        # I don't know why, but this is required after adding the eager load in this case
+        res = res.unique()
         return list(res.scalars().all())

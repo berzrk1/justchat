@@ -13,8 +13,7 @@ HANDLERS = {
     MessageType.CHANNEL_LEAVE: channel_handler.handler_channel_leave,
     # Chat
     MessageType.CHAT_SEND: chat_handler.handler_chat_send,
-    MessageType.REACT_ADD: chat_handler.handler_chat_react,
-    MessageType.REACT_REMOVE: chat_handler.handler_chat_react,
+    MessageType.REACT: chat_handler.handler_chat_react,
     MessageType.TYPING_START: chat_handler.handler_chat_typing,
     # Chat Commands
     MessageType.CHAT_KICK: commands_handler.handler_kick,
@@ -34,4 +33,5 @@ async def dispatch(
     logging.debug(
         f"This handler was invoked: {handler.__name__ if handler else 'Unknown Handler'} "
     )
+    logging.debug(f"Client Message Protocol = {message}")
     await handler(ctx, message, manager)

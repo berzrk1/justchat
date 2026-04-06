@@ -298,7 +298,7 @@ function App() {
       if (msg.type === 'chat_mute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
       if (msg.type === 'chat_unmute' && 'channel_id' in msg.payload) return msg.payload.channel_id === currentChannelId
       return false
-    })
+    }).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
   })()
 
   function handleJoinChannel(e: FormEvent<HTMLFormElement>) {

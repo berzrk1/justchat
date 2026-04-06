@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react'
 import { useWebSocket } from './WebSocketContext'
 import type { Message } from '../types/messages'
 
@@ -6,9 +6,6 @@ import type { Message } from '../types/messages'
 type ReactionsMap = Map<string, Map<string, number>>
 
 interface ReactionsContextType {
-  reactions: ReactionsMap
-  addReaction: (messageId: string, emote: string) => void
-  removeReaction: (messageId: string, emote: string) => void
   getMessageReactions: (messageId: string) => Map<string, number>
 }
 
@@ -17,88 +14,53 @@ const ReactionsContext = createContext<ReactionsContextType | undefined>(undefin
 export function ReactionsProvider({ children }: { children: ReactNode }) {
   const [reactions, setReactions] = useState<ReactionsMap>(new Map())
   const { messages } = useWebSocket()
-  const [processedMessageIds, setProcessedMessageIds] = useState<Set<string>>(new Set())
+  const processedCountRef = useRef(0)
 
-  // Listen for reaction messages and update state
   useEffect(() => {
-    messages.forEach((msg: Message) => {
-      // Skip if no id or we've already processed this message
-      if (!msg.id || processedMessageIds.has(msg.id)) {
-        return
-      }
-
-      if (msg.type === 'chat_react_add') {
+    const unprocessed = messages.slice(processedCountRef.current)
+    unprocessed.forEach((msg: Message) => {
+      if (msg.type === 'chat_send') {
+        const { reactions } = msg.payload
+        if (reactions && Object.keys(reactions).length > 0) {
+          setReactions(prev => {
+            if (prev.has(msg.id!)) return prev
+            const newMap = new Map(prev)
+            newMap.set(msg.id!, new Map(Object.entries(reactions)))
+            return newMap
+          })
+        }
+      } else if (msg.type === 'chat_react_add') {
         const { message_id, emote } = msg.payload
         setReactions(prev => {
           const newMap = new Map(prev)
-          const msgReactions = newMap.get(message_id) || new Map()
+          const msgReactions = new Map(newMap.get(message_id) || [])
           msgReactions.set(emote, (msgReactions.get(emote) || 0) + 1)
           newMap.set(message_id, msgReactions)
           return newMap
         })
-        setProcessedMessageIds(prev => new Set(prev).add(msg.id!))
       } else if (msg.type === 'chat_react_remove') {
         const { message_id, emote } = msg.payload
         setReactions(prev => {
           const newMap = new Map(prev)
-          const msgReactions = newMap.get(message_id)
-          if (msgReactions) {
-            const count = (msgReactions.get(emote) || 0) - 1
-            if (count <= 0) {
-              msgReactions.delete(emote)
-            } else {
-              msgReactions.set(emote, count)
-            }
-            if (msgReactions.size === 0) {
-              newMap.delete(message_id)
-            } else {
-              newMap.set(message_id, msgReactions)
-            }
-          }
+          const msgReactions = new Map(newMap.get(message_id) || [])
+          const count = (msgReactions.get(emote) || 0) - 1
+          if (count <= 0) msgReactions.delete(emote)
+          else msgReactions.set(emote, count)
+          if (msgReactions.size === 0) newMap.delete(message_id)
+          else newMap.set(message_id, msgReactions)
           return newMap
         })
-        setProcessedMessageIds(prev => new Set(prev).add(msg.id!))
       }
     })
-  }, [messages, processedMessageIds])
-
-  const addReaction = (messageId: string, emote: string) => {
-    setReactions(prev => {
-      const newMap = new Map(prev)
-      const msgReactions = newMap.get(messageId) || new Map()
-      msgReactions.set(emote, (msgReactions.get(emote) || 0) + 1)
-      newMap.set(messageId, msgReactions)
-      return newMap
-    })
-  }
-
-  const removeReaction = (messageId: string, emote: string) => {
-    setReactions(prev => {
-      const newMap = new Map(prev)
-      const msgReactions = newMap.get(messageId)
-      if (msgReactions) {
-        const count = (msgReactions.get(emote) || 0) - 1
-        if (count <= 0) {
-          msgReactions.delete(emote)
-        } else {
-          msgReactions.set(emote, count)
-        }
-        if (msgReactions.size === 0) {
-          newMap.delete(messageId)
-        } else {
-          newMap.set(messageId, msgReactions)
-        }
-      }
-      return newMap
-    })
-  }
+    processedCountRef.current = messages.length
+  }, [messages])
 
   const getMessageReactions = (messageId: string): Map<string, number> => {
     return reactions.get(messageId) || new Map()
   }
 
   return (
-    <ReactionsContext.Provider value={{ reactions, addReaction, removeReaction, getMessageReactions }}>
+    <ReactionsContext.Provider value={{ getMessageReactions }}>
       {children}
     </ReactionsContext.Provider>
   )

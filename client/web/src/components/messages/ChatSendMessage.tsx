@@ -32,14 +32,9 @@ export function ChatSendMessageComponent({ message, currentUsername }: ChatSendM
   const reactions = id ? getMessageReactions(id) : new Map<string, number>()
   const userColor = isOwn ? 'var(--text-own)' : getUserColor(sender)
 
-  const handleAdd = (emote: string) => {
+  const handleReact = (emote: string) => {
     if (!id) return
-    sendMessage(MessageBuilder.reactAdd(payload.channel_id, id, emote))
-  }
-
-  const handleRemove = (emote: string) => {
-    if (!id) return
-    sendMessage(MessageBuilder.reactRemove(payload.channel_id, id, emote))
+    sendMessage(MessageBuilder.react(payload.channel_id, id, emote))
   }
 
   return (
@@ -107,7 +102,7 @@ export function ChatSendMessageComponent({ message, currentUsername }: ChatSendM
             {Array.from(reactions.entries()).map(([emote, count]) => (
               <button
                 key={emote}
-                onClick={() => handleRemove(emote)}
+                onClick={() => handleReact(emote)}
                 style={{
                   background: 'var(--surface-3)',
                   border: '1px solid var(--border-bright)',
@@ -127,7 +122,7 @@ export function ChatSendMessageComponent({ message, currentUsername }: ChatSendM
             ))}
             <div style={{ position: 'relative' }}>
               {showPicker && (
-                <ReactionPicker onSelect={handleAdd} onClose={() => setShowPicker(false)} />
+                <ReactionPicker onSelect={handleReact} onClose={() => setShowPicker(false)} />
               )}
               <button
                 onClick={() => setShowPicker(v => !v)}

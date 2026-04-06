@@ -15,7 +15,8 @@ from chat_server.services.authorization_service import (
 from chat_server.services.channel_service import ChannelService
 
 SERVER_ONLY_MESSAGES = {
-    MessageType.CHANNEL_JOIN,
+    MessageType.REACT_ADD,
+    MessageType.REACT_REMOVE,
 }
 
 
@@ -107,7 +108,11 @@ class ConnectionManager:
             if msg is None:
                 logging.warning(f"Client sent a malformed data: {data}")
                 await self.send_error(websocket, "Invalid message format")
-                raise ValidationError
+                return
+
+            if msg.type in SERVER_ONLY_MESSAGES:
+                await self.send_error(websocket, "Server-only message type")
+                return
 
             ctx = self.connections.get_by_websocket(websocket)
 

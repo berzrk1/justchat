@@ -1,3 +1,4 @@
+from chat_server.protocol.emotes import EMOTES
 from typing import Literal, Annotated
 
 from pydantic import UUID4, BaseModel, ConfigDict, StringConstraints
@@ -73,6 +74,7 @@ class ChatSendPayload(BaseModel):
     channel_id: int
     sender: UserFrom | None = None
     content: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
+    reactions: dict[Literal["👍", "😍", "🔥", "😂", "😭"], int] | None = None
 
 
 @register_message(MessageType.CHAT_SEND)
@@ -84,9 +86,15 @@ class ChatSend(BaseMessage):
 # Reacts
 class ReactPayload(BaseModel):
     model_config = {"extra": "forbid"}
-    emote: Literal["👍", "😍", "🔥", "😂", "😭"]
+    emote: EMOTES
     message_id: UUID4
     channel_id: int
+
+
+@register_message(MessageType.REACT)
+class React(BaseMessage):
+    type: Literal[MessageType.REACT] = MessageType.REACT
+    payload: ReactPayload
 
 
 @register_message(MessageType.REACT_ADD)

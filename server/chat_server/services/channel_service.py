@@ -1,4 +1,6 @@
-from chat_server.database.factories import messages_repo_factory
+from collections import Counter
+from chat_server.protocol.emotes import EMOTES
+from chat_server.database.factories import messages_repo_factory, react_repo_factory
 import asyncio
 from datetime import datetime
 import logging
@@ -17,9 +19,14 @@ from chat_server.protocol.messages import (
     UserFrom,
     ChatSendPayload,
     ChatSend,
+    ReactRemove,
+    ReactPayload,
+    ReactAdd,
 )
 from chat_server.database.repositories.membership import MembershipRepository
 from chat_server.infrastructure.message_broker import MessageBroker
+
+logger = logging.getLogger(__name__)
 
 
 class ChannelService:
@@ -63,6 +70,58 @@ class ChannelService:
 
         await self.send_to_channel(channel, response)
 
+    async def react_chat(
+        self, user: User, message_id: uuid.UUID, channel: Channel, emote: EMOTES
+    ):
+        """Create new reaction to a message, or update the existing reaction, or remove reaction"""
+        async with react_repo_factory() as react_repo:
+            react_db = await react_repo.get(message_id, user.id)
+
+            logger.debug(f"react_db = {repr(react_db)}")
+            logger.debug(f"{emote = }")
+
+            # User already reacted to the message
+            if react_db:
+                react_remove = ReactRemove(
+                    timestamp=datetime.now(),
+                    id=uuid.uuid4(),
+                    payload=ReactPayload(
+                        emote=react_db.emote,  # type: ignore
+                        message_id=message_id,
+                        channel_id=channel.id,
+                    ),
+                )
+                if react_db.emote == emote:  # Toggle
+                    # Remove reaction
+                    await react_repo.delete(react_db)
+                    await self.send_to_channel(channel, react_remove)
+                    return
+                else:
+                    # Update reaction
+                    react_db.emote = emote
+                    await self.send_to_channel(channel, react_remove)
+                    react_add = ReactAdd(
+                        timestamp=datetime.now(),
+                        id=uuid.uuid4(),
+                        payload=ReactPayload(
+                            emote=emote,
+                            message_id=message_id,
+                            channel_id=channel.id,
+                        ),
+                    )
+            else:
+                await react_repo.create(message_id, user.id, emote)
+                react_add = ReactAdd(
+                    timestamp=datetime.now(),
+                    id=uuid.uuid4(),
+                    payload=ReactPayload(
+                        emote=emote,
+                        message_id=message_id,
+                        channel_id=channel.id,
+                    ),
+                )
+            await self.send_to_channel(channel, react_add)
+
     async def join_channel(self, user: User, channel: Channel) -> None:
         """
         Join a User to a channel, creates the channel if it doesn't exist
@@ -81,6 +140,9 @@ class ChannelService:
                     channel_id=history_msg.channel_id,
                     sender=UserFrom(username=history_msg.sender_username),
                     content=history_msg.content,
+                    reactions=dict(  # type:ignore
+                        Counter(react.emote for react in history_msg.reactions)
+                    ),
                 )
                 history_send = ChatSend(
                     timestamp=history_msg.timestamp, id=history_msg.id, payload=payload

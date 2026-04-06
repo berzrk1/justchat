@@ -2,6 +2,7 @@ export const MessageType = {
   HELLO: "hello",
   ERROR: "error",
   CHAT_SEND: "chat_send",
+  REACT: "chat_react",
   REACT_ADD: "chat_react_add",
   REACT_REMOVE: "chat_react_remove",
   TYPING_START: "chat_typing",
@@ -66,6 +67,7 @@ export interface ChatSendPayloadServerToClient {
   channel_id: number;
   sender?: UserFrom; // User who sent the message
   content: string;
+  reactions?: Record<string, number> | null;
 }
 
 export interface ChatSendMessageServerToClient extends BaseMessage {
@@ -128,11 +130,17 @@ export interface ErrorMessage extends BaseMessage {
 
 // Reactions (Client → Server)
 export interface ReactPayloadClientToServer {
-  emote: string; // Emoji string
-  message_id: string; // UUID of the message being reacted to
+  emote: string;
+  message_id: string;
   channel_id: number;
 }
 
+export interface ReactMessageClientToServer extends BaseMessage {
+  type: typeof MessageType.REACT;
+  payload: ReactPayloadClientToServer;
+}
+
+// kept for type completeness — server still sends these as responses
 export interface ReactAddMessageClientToServer extends BaseMessage {
   type: typeof MessageType.REACT_ADD;
   payload: ReactPayloadClientToServer;
