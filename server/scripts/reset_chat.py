@@ -91,6 +91,10 @@ def delete_messages():
     """Delete all messages from the database."""
     try:
         with engine.connect() as conn:
+            reaction_result = conn.execute(text('DELETE FROM "reactions"'))
+            logging.info(
+                f"Successfully deleted {reaction_result.rowcount} reactions."
+            )
             result = conn.execute(text('DELETE FROM "messages"'))
             logging.info(f"Successfully deleted {result.rowcount} messages.")
             conn.commit()

@@ -62,10 +62,12 @@ class ReactTable(Base):
     __tablename__ = "reactions"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    message_id: Mapped[UUID] = mapped_column(ForeignKey("messages.id"))
+    message_id: Mapped[UUID] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE")
+    )
     message: Mapped[MessageTable] = relationship(back_populates="reactions")
     emote: Mapped[str] = mapped_column(Unicode)
-    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     sender: Mapped[UserTable] = relationship(back_populates="reactions")
 
     def __repr__(self) -> str:
