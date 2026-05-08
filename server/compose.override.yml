@@ -5,6 +5,8 @@ services:
       target: dev
     env_file:
       - .env
+    ports:
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -13,6 +15,19 @@ services:
         limits:
           cpus: "1.5"
           memory: 1g
+    develop:
+      watch:
+        # Sync the working directory with the `/app` directory in the container
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+            - "**/__pycache__"
+            - "**/*.pyc"
+        # Rebuild the image if dependencies change by checking uv.lock
+        - action: rebuild
+          path: ./uv.lock
     networks:
       - chat_network
     volumes:

@@ -7,17 +7,4 @@ services:
     env_file:
       - .env
     ports:
-      - "8000:8000"
-    develop:
-      watch:
-        # Sync the working directory with the `/app` directory in the container
-        - action: sync
-          path: .
-          target: /app
-          ignore:
-            - .venv/
-            - "**/__pycache__"
-            - "**/*.pyc"
-        # Rebuild the image if dependencies change by checking uv.lock
-        - action: rebuild
-          path: ./uv.lock
+      - "443:8000"
